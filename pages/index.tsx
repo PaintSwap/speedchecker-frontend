@@ -42,8 +42,6 @@ const Home: NextPage = () => {
     args: [],
   });
 
-  console.log(address);
-
   const { data: yourNFTs } = useContractRead({
     address: "0xE33B9cAea42ead9D2f6e88489A888CA75a8D09Aa",
     abi: contractABI,
@@ -51,30 +49,26 @@ const Home: NextPage = () => {
     args: [address],
   });
 
-  const { data: yourBalance } = useContractRead({
-    address: "0xE33B9cAea42ead9D2f6e88489A888CA75a8D09Aa",
-    abi: contractABI,
-    functionName: "balanceOf",
-    args: [address, 1],
-  });
-
-  console.log(yourNFTs);
-  console.log(yourBalance);
-
+  const totalNFTs = (yourNFTs as string[])?.reduce((sum, current) => sum + current, 0n) || 0n;
   const { write, status, data } = useContractWrite(config);
 
   const [startTime, setStartTime] = useState(0);
-  if (status == "loading" && startTime) {
+  if (status == "error"  && startTime > 0) {
+    console.log("ERROR", Date.now());
+    setStartTime(0);
+  }
+
+  // Existing
+  const { isLoading, isSuccess, isError } = useWaitForTransaction({
+    hash: data?.hash,
+  }); // existing
+
+  if (isLoading && startTime == 0) {
     console.log("START", Date.now());
     setStartTime(Date.now());
   }
 
-  // Existing
-  const { isLoading, isSuccess } = useWaitForTransaction({
-    hash: data?.hash,
-  }); // existing
-
-  if (isSuccess && startTime > 0) {
+  if ((isSuccess || isError) && startTime > 0) {
     console.log(`Time taken ${Date.now() - startTime}ms`);
     setStartTime(0);
   }
@@ -135,6 +129,7 @@ const Home: NextPage = () => {
               <button disabled={isLoading && !write} onClick={onMint}>
                 Mint
               </button>
+              <text>You have: {totalNFTs.toString()} NFTs</text>
               <Button
                 variant="contained"
                 color="primary"
