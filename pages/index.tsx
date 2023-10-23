@@ -178,37 +178,19 @@ const Home: NextPage = () => {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
 
-        <meta
-          name="keywords"
-          content="defi, swap, crypto, lifi, li.fi, exchange, metamask"
-        />
+        <meta name="keywords" content="defi, swap, crypto, lifi, li.fi, exchange, metamask" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta
-          name="twitter:title"
-          content="Fantom Sonic - Test the speed of Fantom FVM"
-        />
-        <meta
-          name="twitter:image"
-          content="https://sonic.paintswap.io/og.png"
-        />
-        <meta name="twitter:domain" content="sonic.paintswap.app" />
+        <meta name="twitter:title" content="Fantom Sonic - Test the speed of Fantom FVM" />
+        <meta name="twitter:image" content="https://sonic.paintswap.io/og.png" />
+        <meta name="twitter:domain" content="sonic.paintswap.io" />
         <meta name="twitter:site" content="@paintoshi" />
         <meta name="twitter:creator" content="@paintoshi" />
-        <meta
-          name="twitter:description"
-          content="Fantom Sonic - Test the speed of Fantom FVM"
-        />
+        <meta name="twitter:description" content="Fantom Sonic - Test the speed of Fantom FVM" />
 
-        <meta
-          property="og:title"
-          content="Fantom Sonic - Test the speed of Fantom FVM"
-        />
+        <meta property="og:title" content="Fantom Sonic - Test the speed of Fantom FVM" />
         <meta property="og:description" content="The upcoming Fantom network" />
-        <meta
-          property="og:image"
-          content="https://sonic.paintswap.io/og.png"
-        />
-        <meta property="og:url" content="https://sonic.paintswap.app" />
+        <meta property="og:image" content="https://sonic.paintswap.io/og.png" />
+        <meta property="og:url" content="https://sonic.paintswap.io" />
       </Head>
       <main className={`${styles.main} ${manrope.className}`}>
         <div className={styles.center}>

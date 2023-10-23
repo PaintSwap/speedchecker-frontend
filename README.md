@@ -2,7 +2,7 @@
 
 Try the speed of the new Fantom FVM
 
-### Live at https://sonic.paintswap.app
+### Live at https://sonic.paintswap.io
 
 ## Development
 
