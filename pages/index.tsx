@@ -49,9 +49,9 @@ const Home: NextPage = () => {
   const [currentChains, setCurrentChains] = useState<Chain[]>([])
   const [startTime, setStartTime] = useState<number>(0)
   const [isMinting, setIsMinting] = useState(false)
+  const [isSupportedChain, setIsSupportedChain] = useState(false);
   const [totalNFTs, setTotalNFTs] = useState<bigint>(0n)
   const [txSpeeds, setTxSpeeds] = usePersistState<SpeedList[]>(nullSpeed, 'txSpeeds')
-  const [forceUpdate, setForceUpdate] = useState(0)  // To trigger re-render)
 
   const isClient = useIsClient()
 
@@ -69,6 +69,10 @@ const Home: NextPage = () => {
   const { chain } = useNetwork()
   const { chains, error, isLoading: isLoadingChain, pendingChainId, switchNetwork } =
     useSwitchNetwork()
+
+  useEffect(() => {
+    setIsSupportedChain(chains.find((x) => x.id === networkValue) !== undefined);
+  }, [chains, networkValue]);
 
   useEffect(() => {
     if (address) {
@@ -115,26 +119,14 @@ const Home: NextPage = () => {
     abi: contractABI,
     functionName: "getAllNFTs",
     args: [address],
+    watch: true
   })
 
   useEffect(() => {
     setTotalNFTs((yourNFTs as string[])?.reduce((sum, current) => sum + BigInt(current), 0n) || 0n);
   }, [yourNFTs])
 
-  // Set up an interval to force a re-render, which will trigger useContractRead again
-  // Except it doesnt! TODO
-  useEffect(() => {
-    const intervalId = setInterval(() => {
-      setForceUpdate(prev => prev + 1)
-    }, 5000)  // every 5 seconds
-
-    // Clear the interval when the component unmounts
-    return () => {
-      clearInterval(intervalId)
-    }
-  }, [])  // Empty dependency array means this effect runs once when the component mounts
-
-  const { write, status, data } = useContractWrite(config)
+  const { writeAsync, status, data, reset } = useContractWrite(config)
 
   useEffect(() => {
     if (status === "error"  && startTime > 0) {
@@ -147,31 +139,31 @@ const Home: NextPage = () => {
   const { isLoading, isSuccess, isError } = useWaitForTransaction({
     hash: data?.hash,
   }) // existing
-  
-  useEffect(() => {
-    if (isLoading && startTime === 0) {
-      console.log("START", Date.now())
-      setStartTime(Date.now())
-    }
-  }, [isLoading, startTime])
 
   useEffect(() => {
     console.log(isSuccess, isError)
     if ((isSuccess || isError) && startTime > 0 && isMinting) {
       console.log(`Time taken ${Date.now() - startTime}ms`)
-      setForceUpdate(prev => prev + 1)
       appendSpeed(chain?.name || "unknown", Date.now() - startTime)
     }
     if (isSuccess || isError) {
       setIsMinting(false)
       setStartTime(0)
+      reset();
     }
-  }, [isSuccess, isError, startTime, appendSpeed, chain?.name, isMinting])
+  }, [isSuccess, isError, startTime, appendSpeed, chain?.name, isMinting, reset])
 
-  const onMint = () => {
-    setIsMinting(true)
-    write?.()
-  }
+  const onMint = async () => {
+    setIsMinting(true);
+    try {
+      await writeAsync?.();
+      console.log("START", Date.now());
+      setStartTime(Date.now());
+    } catch (error: any) {
+      setIsMinting(false);
+      reset();
+    }
+  };
 
   // To avoid hydration issues during SSR
   if (!isClient) {
@@ -236,6 +228,9 @@ const Home: NextPage = () => {
               <TextSubtle>
                 Choose Network
               </TextSubtle>
+              {!isSupportedChain && (
+                <TextSubtle>Unsupported Network</TextSubtle>
+              )}
             </Box>
             <ToggleButtonGroup
               color="primary"
@@ -261,7 +256,7 @@ const Home: NextPage = () => {
             <Box width="100%" mt="16px" mb="16px">
               <Divider />
             </Box>
-            <Button variant='contained' color="primary" disabled={isLoading || !write || !address || isMinting} onClick={onMint} startIcon={isLoading || !write || !address || isMinting ?  <StyledCircularProgress /> : null}>
+            <Button variant='contained' color="primary" disabled={isLoading || !writeAsync || !address || isMinting || !isSupportedChain} onClick={onMint} startIcon={address && (isLoading || !writeAsync || isMinting) ?  <StyledCircularProgress /> : null}>
               Mint an NFT
             </Button>
             <Box mt="8px">
