@@ -43,10 +43,12 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  background: #192243ad;
+  background: #0f1631e6;
   border-radius: 16px;
   padding: 32px;
   min-width: 500px;
+  max-height: calc(100vh - 80px);
+  overflow-y: auto;
 }
 
 /* Mobile */
@@ -67,6 +69,7 @@
   .mainPanel {
     min-width: unset;
     margin: 0 16px;
+    max-height: calc(100vh - 32px);
   }
 }
 

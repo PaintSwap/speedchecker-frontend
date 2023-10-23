@@ -136,7 +136,6 @@ const Home: NextPage = () => {
   }) // existing
 
   useEffect(() => {
-    console.log(isSuccess, isError)
     if ((isSuccess || isError) && startTime > 0 && isMinting) {
       console.log(`Time taken ${Date.now() - startTime}ms`)
       appendSpeed(chain?.name || "unknown", Date.now() - startTime)
@@ -168,7 +167,7 @@ const Home: NextPage = () => {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
 
-        <meta name="keywords" content="defi, swap, crypto, lifi, li.fi, exchange, metamask" />
+        <meta name="keywords" content="fantom, sonic, fvm, testnet, transactions, speed, tps, crypto" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Fantom Sonic - Test the speed of Fantom FVM" />
         <meta name="twitter:image" content="https://sonic.paintswap.io/og.png" />
@@ -214,6 +213,8 @@ const Home: NextPage = () => {
                   key={x.id}
                   onClick={() => switchNetwork?.(x.id)}
                   value={x.id}
+                  size="small"
+                  sx={{paddingBottom: '5px'}}
                 >
                   {x.name}
                 </ToggleButton>
@@ -221,7 +222,7 @@ const Home: NextPage = () => {
             </ToggleButtonGroup>
             <Box mt="8px">
               <TextWarning>{error && error.message}</TextWarning>
-              {!isSupportedChain && (
+              {!isSupportedChain && !!showAddress && (
                 <TextWarning>Unsupported Network Detected</TextWarning>
               )}
             </Box>
@@ -270,7 +271,7 @@ const Home: NextPage = () => {
       <Script
         strategy="afterInteractive"
         id="google-tag1"
-        src={`https://www.googletagmanager.com/gtag/js?id=G-CYE6KFRLTH`}
+        src={`https://www.googletagmanager.com/gtag/js?id=G-NVFJDSR57S`}
       />
       <Script
         strategy="afterInteractive"
@@ -280,7 +281,7 @@ const Home: NextPage = () => {
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
-            gtag('config', 'G-CYE6KFRLTH', {
+            gtag('config', 'G-NVFJDSR57S', {
               page_path: window.location.pathname,
             });
           `,
