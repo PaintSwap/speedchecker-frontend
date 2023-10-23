@@ -23,6 +23,8 @@ const Home: NextPage = () => {
   useEffect(() => {
     if (address) {
       setShowAddress(address)
+    } else {
+      setShowAddress(null)
     }
   }, [address])
 
