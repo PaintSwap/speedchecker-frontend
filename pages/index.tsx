@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import Head from "next/head"
 import { Manrope } from "next/font/google"
 import styles from "@/styles/Home.module.css"
@@ -9,15 +9,51 @@ import { useWeb3Modal } from '@web3modal/wagmi/react'
 import { useAccount, useDisconnect, useNetwork, useSwitchNetwork, useContractRead, useContractWrite, usePrepareContractWrite, useWaitForTransaction, Chain } from 'wagmi'
 import { abbreviateAddressAsString } from '@/helpers/Utilities'
 import { Button, ToggleButton, ToggleButtonGroup, Divider, Box } from '@mui/material'
-import { TextSubtle } from '@/Components/StyledComps'
+import { StyledCircularProgress, TextNormal, TextSubtle, TextWarning } from '@/Components/StyledComps'
 import contractABI from "../helpers/SonicABI"
+import usePersistState from "@/helpers/UsePersistState"
 
-const manrope = Manrope({ subsets: ["latin"] });
+const manrope = Manrope({ subsets: ["latin"] })
+
+type Speed = {
+  speed: number
+  timestamp: number
+}
+
+type SpeedList = {
+  chain: string,
+  label: string,
+  speed: Speed[]
+}
+
+// To avoid hydration issues during SSR
+function useIsClient() {
+  const [isClient, setIsClient] = useState(false)
+
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
+
+  return isClient
+}
+
+const nullSpeed = [
+  {chain: "Fantom", label: "Fantom", speed: []},
+  {chain: "Sonic", label: "Sonic", speed: []},
+  {chain: "Avalanche", label: "Avalanche", speed: []}
+]
 
 const Home: NextPage = () => {
   const [showAddress, setShowAddress] = useState<`0x${string}` | null>(null)
   const [networkValue, setNetworkValue] = useState<number>(250)
   const [currentChains, setCurrentChains] = useState<Chain[]>([])
+  const [startTime, setStartTime] = useState<number>(0)
+  const [isMinting, setIsMinting] = useState(false)
+  const [totalNFTs, setTotalNFTs] = useState<bigint>(0n)
+  const [txSpeeds, setTxSpeeds] = usePersistState<SpeedList[]>(nullSpeed, 'txSpeeds')
+  const [forceUpdate, setForceUpdate] = useState(0)  // To trigger re-render)
+
+  const isClient = useIsClient()
 
   const handleChange = (
     event: React.MouseEvent<HTMLElement>,
@@ -56,6 +92,17 @@ const Home: NextPage = () => {
     }
   }, [chain?.id])
 
+  // Append latest speed to matching network list
+  const appendSpeed = useCallback((chain: string, speed: number) => {
+    const newSpeeds = txSpeeds.map((x) => {
+      if (x?.chain?.toLowerCase() === chain?.toLowerCase()) {
+        x.speed.push({speed: speed, timestamp: Date.now()})
+      }
+      return x
+    })
+    setTxSpeeds(newSpeeds)
+  }, [txSpeeds])
+
   const { config } = usePrepareContractWrite({
     address: "0xE33B9cAea42ead9D2f6e88489A888CA75a8D09Aa",
     abi: contractABI,
@@ -70,32 +117,65 @@ const Home: NextPage = () => {
     args: [address],
   })
 
-  const totalNFTs = (yourNFTs as string[])?.reduce((sum, current) => sum + BigInt(current), 0n) || 0n
+  useEffect(() => {
+    setTotalNFTs((yourNFTs as string[])?.reduce((sum, current) => sum + BigInt(current), 0n) || 0n);
+  }, [yourNFTs])
+
+  // Set up an interval to force a re-render, which will trigger useContractRead again
+  // Except it doesnt! TODO
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      setForceUpdate(prev => prev + 1)
+    }, 5000)  // every 5 seconds
+
+    // Clear the interval when the component unmounts
+    return () => {
+      clearInterval(intervalId)
+    }
+  }, [])  // Empty dependency array means this effect runs once when the component mounts
+
   const { write, status, data } = useContractWrite(config)
 
-  const [startTime, setStartTime] = useState(0)
-  if (status == "error"  && startTime > 0) {
-    console.log("ERROR", Date.now())
-    setStartTime(0)
-  }
+  useEffect(() => {
+    if (status === "error"  && startTime > 0) {
+      console.log("ERROR", Date.now())
+      setStartTime(0)
+    }
+  }, [status, startTime])
 
   // Existing
   const { isLoading, isSuccess, isError } = useWaitForTransaction({
     hash: data?.hash,
   }) // existing
+  
+  useEffect(() => {
+    if (isLoading && startTime === 0) {
+      console.log("START", Date.now())
+      setStartTime(Date.now())
+    }
+  }, [isLoading, startTime])
 
-  if (isLoading && startTime == 0) {
-    console.log("START", Date.now())
-    setStartTime(Date.now())
-  }
-
-  if ((isSuccess || isError) && startTime > 0) {
-    console.log(`Time taken ${Date.now() - startTime}ms`)
-    setStartTime(0)
-  }
+  useEffect(() => {
+    console.log(isSuccess, isError)
+    if ((isSuccess || isError) && startTime > 0 && isMinting) {
+      console.log(`Time taken ${Date.now() - startTime}ms`)
+      setForceUpdate(prev => prev + 1)
+      appendSpeed(chain?.name || "unknown", Date.now() - startTime)
+    }
+    if (isSuccess || isError) {
+      setIsMinting(false)
+      setStartTime(0)
+    }
+  }, [isSuccess, isError, startTime, appendSpeed, chain?.name])
 
   const onMint = () => {
+    setIsMinting(true)
     write?.()
+  }
+
+  // To avoid hydration issues during SSR
+  if (!isClient) {
+    return null
   }
 
   return (
@@ -166,7 +246,7 @@ const Home: NextPage = () => {
             >
               {currentChains.map((x) => (
                 <ToggleButton
-                  disabled={!switchNetwork || x.id === chain?.id}
+                  disabled={!switchNetwork || x.id === chain?.id || isLoading || !address || isMinting}
                   key={x.id}
                   onClick={() => switchNetwork?.(x.id)}
                   value={x.id}
@@ -175,16 +255,47 @@ const Home: NextPage = () => {
                 </ToggleButton>
               ))}
             </ToggleButtonGroup>
+            <Box mt="8px">
+              <TextWarning>{error && error.message}</TextWarning>
+            </Box>
             <Box width="100%" mt="16px" mb="16px">
               <Divider />
             </Box>
-            <Button variant='contained' color="primary" disabled={isLoading && !write} onClick={onMint}>
+            <Button variant='contained' color="primary" disabled={isLoading || !write || !address || isMinting} onClick={onMint} startIcon={isLoading || !write || !address || isMinting ?  <StyledCircularProgress /> : null}>
               Mint an NFT
             </Button>
             <Box mt="8px">
-              <TextSubtle>You have: {totalNFTs.toString()} NFTs</TextSubtle>
+              <TextNormal>You have: {totalNFTs.toString()} NFTs</TextNormal>
             </Box>
-            <div>{error && error.message}</div>
+            <Box width="100%" mt="16px" mb="16px">
+              <Divider />
+            </Box>
+            <Box alignItems="start" display="flex" flexDirection="row">
+              <TextSubtle>
+                Speed History
+              </TextSubtle>
+              <Box ml="8px">
+                <Button variant='text' size="small" onClick={() => setTxSpeeds(nullSpeed)} style={{lineHeight: 1.2}}>
+                  Clear
+                </Button>
+              </Box>
+            </Box>
+            <Box width="100%" display="flex" justifyContent="space-around" flexDirection="row" mt="8px">
+              {txSpeeds.map((x) => (
+                <Box key={x.chain} display="flex" flexDirection="column" alignItems="center">
+                  <TextNormal>{x.label}</TextNormal>
+                  {x.speed.map((speed) => (
+                    <TextSubtle key={speed.timestamp}>{(speed.speed || 0) / 1000} sec</TextSubtle>
+                  ))}
+                </Box>
+              ))}
+            </Box>
+            <Box width="100%" mt="16px" mb="16px">
+              <Divider />
+            </Box>
+            <Box mb="0">
+              <a href="https://github.com/PaintSwap/fantom-sonic-frontend" target="_blank">Github Source</a>
+            </Box>
           </div>
         </div>
       </main>
