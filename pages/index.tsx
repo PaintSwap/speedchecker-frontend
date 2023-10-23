@@ -215,7 +215,7 @@ const Home: NextPage = () => {
           <div className={styles.mainPanel}>
             <h1 className={styles.title}>Fantom Sonic</h1>
             <p className={styles.titleSub}>
-              Compare Fantom Sonic with other networks<br />
+              Compare FVM Sonic with other networks<br />
             </p>
             {showAddress && (
               <Button variant='contained' color="primary" onClick={() => open()}>{abbreviateAddressAsString(address ?? 'N/A')}</Button>
@@ -228,9 +228,6 @@ const Home: NextPage = () => {
               <TextSubtle>
                 Choose Network
               </TextSubtle>
-              {!isSupportedChain && (
-                <TextSubtle>Unsupported Network</TextSubtle>
-              )}
             </Box>
             <ToggleButtonGroup
               color="primary"
@@ -252,6 +249,9 @@ const Home: NextPage = () => {
             </ToggleButtonGroup>
             <Box mt="8px">
               <TextWarning>{error && error.message}</TextWarning>
+              {!isSupportedChain && (
+                <TextWarning>Unsupported Network Detected</TextWarning>
+              )}
             </Box>
             <Box width="100%" mt="16px" mb="16px">
               <Divider />
