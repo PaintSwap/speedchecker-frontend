@@ -63,6 +63,11 @@
     transform: none;
     height: 300px;
   }
+
+  .mainPanel {
+    min-width: unset;
+    margin: 0 16px;
+  }
 }
 
 /* Tablet and Smaller Desktop */

@@ -6,21 +6,22 @@ import styles from "@/styles/Home.module.css"
 import type { NextPage } from 'next'
 import Script from 'next/script'
 import { useWeb3Modal } from '@web3modal/wagmi/react'
-import { useAccount, useDisconnect, useNetwork, useSwitchNetwork, useContractRead, useContractWrite, usePrepareContractWrite, useWaitForTransaction } from 'wagmi'
+import { useAccount, useDisconnect, useNetwork, useSwitchNetwork, useContractRead, useContractWrite, usePrepareContractWrite, useWaitForTransaction, Chain } from 'wagmi'
 import { abbreviateAddressAsString } from '@/helpers/Utilities'
-import { Button, ToggleButton, ToggleButtonGroup } from '@mui/material'
-import SuperText from '@/Components/SuperText'
+import { Button, ToggleButton, ToggleButtonGroup, Divider, Box } from '@mui/material'
+import { TextSubtle } from '@/Components/StyledComps'
 import contractABI from "../helpers/SonicABI"
 
 const manrope = Manrope({ subsets: ["latin"] });
 
 const Home: NextPage = () => {
   const [showAddress, setShowAddress] = useState<`0x${string}` | null>(null)
-  const [networkValue, setNetworkValue] = useState('fantom')
+  const [networkValue, setNetworkValue] = useState<number>(250)
+  const [currentChains, setCurrentChains] = useState<Chain[]>([])
 
   const handleChange = (
     event: React.MouseEvent<HTMLElement>,
-    newNetwork: string,
+    newNetwork: number,
   ) => {
     setNetworkValue(newNetwork)
   }
@@ -35,11 +36,25 @@ const Home: NextPage = () => {
 
   useEffect(() => {
     if (address) {
-      setShowAddress(address);
+      setShowAddress(address)
     } else {
-      setShowAddress(null);
+      setShowAddress(null)
     }
-  }, [address]);
+  }, [address])
+
+  // Update current chains
+  useEffect(() => {
+    if (chains) {
+      setCurrentChains(chains)
+    }
+  }, [chains])
+
+  // Change network value when chain.id changes
+  useEffect(() => {
+    if (chain?.id && chain?.id !== networkValue) {
+      setNetworkValue(chain.id)
+    }
+  }, [chain?.id])
 
   const { config } = usePrepareContractWrite({
     address: "0xE33B9cAea42ead9D2f6e88489A888CA75a8D09Aa",
@@ -53,10 +68,10 @@ const Home: NextPage = () => {
     abi: contractABI,
     functionName: "getAllNFTs",
     args: [address],
-  });
+  })
 
   const totalNFTs = (yourNFTs as string[])?.reduce((sum, current) => sum + BigInt(current), 0n) || 0n
-  const { write, status, data } = useContractWrite(config);
+  const { write, status, data } = useContractWrite(config)
 
   const [startTime, setStartTime] = useState(0)
   if (status == "error"  && startTime > 0) {
@@ -67,7 +82,7 @@ const Home: NextPage = () => {
   // Existing
   const { isLoading, isSuccess, isError } = useWaitForTransaction({
     hash: data?.hash,
-  }); // existing
+  }) // existing
 
   if (isLoading && startTime == 0) {
     console.log("START", Date.now())
@@ -128,7 +143,7 @@ const Home: NextPage = () => {
           <div className={styles.mainPanel}>
             <h1 className={styles.title}>Fantom Sonic</h1>
             <p className={styles.titleSub}>
-              Try out the new Fantom FVM<br />
+              Compare Fantom Sonic with other networks<br />
             </p>
             {showAddress && (
               <Button variant='contained' color="primary" onClick={() => open()}>{abbreviateAddressAsString(address ?? 'N/A')}</Button>
@@ -137,9 +152,11 @@ const Home: NextPage = () => {
               <Button variant='contained' color="primary" onClick={() => open()}>Connect</Button>
             )}
 
-            <SuperText color="subtle" fontSize='14px' mt="16px">
-              Choose Network
-            </SuperText>
+            <Box mt="16px">
+              <TextSubtle>
+                Choose Network
+              </TextSubtle>
+            </Box>
             <ToggleButtonGroup
               color="primary"
               value={networkValue}
@@ -147,7 +164,7 @@ const Home: NextPage = () => {
               onChange={handleChange}
               aria-label="Network"
             >
-              {chains.map((x) => (
+              {currentChains.map((x) => (
                 <ToggleButton
                   disabled={!switchNetwork || x.id === chain?.id}
                   key={x.id}
@@ -158,10 +175,15 @@ const Home: NextPage = () => {
                 </ToggleButton>
               ))}
             </ToggleButtonGroup>
-            <Button disabled={isLoading && !write} onClick={onMint}>
+            <Box width="100%" mt="16px" mb="16px">
+              <Divider />
+            </Box>
+            <Button variant='contained' color="primary" disabled={isLoading && !write} onClick={onMint}>
               Mint an NFT
             </Button>
-            <SuperText>You have: {totalNFTs.toString()} NFTs</SuperText>
+            <Box mt="8px">
+              <TextSubtle>You have: {totalNFTs.toString()} NFTs</TextSubtle>
+            </Box>
             <div>{error && error.message}</div>
           </div>
         </div>
