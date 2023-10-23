@@ -8,14 +8,23 @@ import { useWeb3Modal } from '@web3modal/wagmi/react'
 import { useAccount, useDisconnect } from 'wagmi'
 import { abbreviateAddressAsString } from '@/helpers/Utilities'
 import { Button } from '@mui/material'
+import { useEffect, useState } from 'react'
 
 
 const manrope = Manrope({ subsets: ['latin'] })
 
 const Home: NextPage = () => {
+  const [showAddress, setShowAddress] = useState<`0x${string}` | null>(null)
+  
   const { open } = useWeb3Modal()
   const { address } = useAccount()
   const { disconnect } = useDisconnect()
+
+  useEffect(() => {
+    if (address) {
+      setShowAddress(address)
+    }
+  }, [address])
 
   return (
     <>
@@ -48,10 +57,10 @@ const Home: NextPage = () => {
           <p className={styles.titleSub}>
             Try out the new Fantom FVM<br />
           </p>
-            {address && (
-              <Button variant='contained' color="primary" onClick={() => open()}>{abbreviateAddressAsString(address)}</Button>
+            {showAddress && (
+              <Button variant='contained' color="primary" onClick={() => open()}>{abbreviateAddressAsString(address ?? 'N/A')}</Button>
             )}
-            {!address && (
+            {!showAddress && (
               <Button variant='contained' color="primary" onClick={() => open()}>Connect</Button>
             )}
         </div>
