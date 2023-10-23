@@ -2,7 +2,7 @@ import '@/styles/globals.css'
 import type { AppProps } from 'next/app'
 import { createWeb3Modal, defaultWagmiConfig } from '@web3modal/wagmi/react'
 import { WagmiConfig } from 'wagmi'
-import { fantom } from 'wagmi/chains'
+import { avalanche, fantom } from 'wagmi/chains'
 import { ThemeProvider } from '@mui/material/styles'
 import CssBaseline from '@mui/material/CssBaseline'
 import { CacheProvider, EmotionCache } from '@emotion/react'
@@ -27,11 +27,21 @@ const metadata = {
   icons: ['https://avatars.githubusercontent.com/u/37784886']
 }
 
-const chains = [fantom]
+const chains = [fantom, avalanche]
 const wagmiConfig = defaultWagmiConfig({ chains, projectId, metadata })
 
 // 3. Create modal
-createWeb3Modal({ wagmiConfig, projectId, chains })
+createWeb3Modal({ 
+  wagmiConfig,
+  projectId,
+  chains,
+  defaultChain: fantom,
+  themeMode: 'dark',
+  themeVariables: {
+    '--w3m-color-mix': '#05228c',
+    '--w3m-color-mix-strength': 20
+  }
+})
 
 export default function App(props: MyAppProps) {
   const { Component, emotionCache = clientSideEmotionCache, pageProps } = props

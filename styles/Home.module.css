@@ -20,6 +20,7 @@
   font-size: 2.5rem;
   font-weight: 700;
   text-align: center;
+  line-height: 1.2;
 }
 
 .titleSub {
@@ -34,6 +35,18 @@
   font-weight: 400;
   text-align: center;
   margin-bottom: 0.2rem;
+}
+
+/* Centered content as a transparent panel with radius */
+.mainPanel {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: #192243ad;
+  border-radius: 16px;
+  padding: 32px;
+  min-width: 500px;
 }
 
 /* Mobile */
