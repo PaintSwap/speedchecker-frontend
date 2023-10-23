@@ -11,7 +11,7 @@ import { abbreviateAddressAsString } from '@/helpers/Utilities'
 import { Button, ToggleButton, ToggleButtonGroup, Divider, Box } from '@mui/material'
 import { StyledCircularProgress, TextNormal, TextSubtle, TextWarning } from '@/Components/StyledComps'
 import contractABI from "../helpers/SonicABI"
-import usePersistState from "@/helpers/UsePersistState"
+import usePersistState from "../helpers/usePersistState"
 
 const manrope = Manrope({ subsets: ["latin"] })
 
@@ -90,7 +90,7 @@ const Home: NextPage = () => {
     if (chain?.id && chain?.id !== networkValue) {
       setNetworkValue(chain.id)
     }
-  }, [chain?.id])
+  }, [chain?.id, networkValue])
 
   // Append latest speed to matching network list
   const appendSpeed = useCallback((chain: string, speed: number) => {
@@ -101,7 +101,7 @@ const Home: NextPage = () => {
       return x
     })
     setTxSpeeds(newSpeeds)
-  }, [txSpeeds])
+  }, [txSpeeds, setTxSpeeds])
 
   const { config } = usePrepareContractWrite({
     address: "0xE33B9cAea42ead9D2f6e88489A888CA75a8D09Aa",
@@ -166,7 +166,7 @@ const Home: NextPage = () => {
       setIsMinting(false)
       setStartTime(0)
     }
-  }, [isSuccess, isError, startTime, appendSpeed, chain?.name])
+  }, [isSuccess, isError, startTime, appendSpeed, chain?.name, isMinting])
 
   const onMint = () => {
     setIsMinting(true)
