@@ -1,17 +1,17 @@
 import { useCallback, useEffect, useState } from "react"
-import Head from "next/head"
 import { Manrope } from "next/font/google"
 import styles from "@/styles/Home.module.css"
 /* eslint-disable import/no-default-export */
 import type { NextPage } from 'next'
 import Script from 'next/script'
 import { useWeb3Modal } from '@web3modal/wagmi/react'
-import { useAccount, useDisconnect, useNetwork, useSwitchNetwork, useContractRead, useContractWrite, usePrepareContractWrite, useWaitForTransaction, Chain } from 'wagmi'
+import { useAccount, useNetwork, useSwitchNetwork, useContractRead, useContractWrite, usePrepareContractWrite, useWaitForTransaction, Chain } from 'wagmi'
 import { abbreviateAddressAsString } from '@/helpers/Utilities'
 import { Button, ToggleButton, ToggleButtonGroup, Divider, Box } from '@mui/material'
 import { StyledCircularProgress, TextNormal, TextSubtle, TextWarning } from '@/Components/StyledComps'
 import contractABI from "../helpers/SonicABI"
 import usePersistState from "../helpers/usePersistState"
+import Head from "next/head"
 
 const manrope = Manrope({ subsets: ["latin"] })
 
@@ -24,17 +24,6 @@ type SpeedList = {
   chain: string,
   label: string,
   speed: Speed[]
-}
-
-// To avoid hydration issues during SSR
-function useIsClient() {
-  const [isClient, setIsClient] = useState(false)
-
-  useEffect(() => {
-    setIsClient(true)
-  }, [])
-
-  return isClient
 }
 
 const nullSpeed = [
@@ -51,9 +40,8 @@ const Home: NextPage = () => {
   const [isMinting, setIsMinting] = useState(false)
   const [isSupportedChain, setIsSupportedChain] = useState(false);
   const [totalNFTs, setTotalNFTs] = useState<bigint>(0n)
+  const [txSpeedsState, setTxSpeedsState] = useState<SpeedList[]>(nullSpeed)
   const [txSpeeds, setTxSpeeds] = usePersistState<SpeedList[]>(nullSpeed, 'txSpeeds')
-
-  const isClient = useIsClient()
 
   const handleChange = (
     event: React.MouseEvent<HTMLElement>,
@@ -64,15 +52,14 @@ const Home: NextPage = () => {
   
   const { open } = useWeb3Modal()
   const { address } = useAccount()
-  const { disconnect } = useDisconnect()
 
   const { chain } = useNetwork()
   const { chains, error, isLoading: isLoadingChain, pendingChainId, switchNetwork } =
     useSwitchNetwork()
 
   useEffect(() => {
-    setIsSupportedChain(chains.find((x) => x.id === networkValue) !== undefined);
-  }, [chains, networkValue]);
+    setIsSupportedChain(chains.find((x) => x.id === networkValue) !== undefined)
+  }, [chains, networkValue])
 
   useEffect(() => {
     if (address) {
@@ -81,6 +68,14 @@ const Home: NextPage = () => {
       setShowAddress(null)
     }
   }, [address])
+
+  useEffect(() => {
+    if (txSpeeds) {
+      setTxSpeedsState(txSpeeds)
+    } else {
+      setTxSpeedsState(nullSpeed)
+    }
+  }, [txSpeeds])
 
   // Update current chains
   useEffect(() => {
@@ -112,7 +107,7 @@ const Home: NextPage = () => {
     abi: contractABI,
     functionName: "mint",
     args: [],
-  });
+  })
 
   const { data: yourNFTs } = useContractRead({
     address: "0xE33B9cAea42ead9D2f6e88489A888CA75a8D09Aa",
@@ -123,7 +118,7 @@ const Home: NextPage = () => {
   })
 
   useEffect(() => {
-    setTotalNFTs((yourNFTs as string[])?.reduce((sum, current) => sum + BigInt(current), 0n) || 0n);
+    setTotalNFTs((yourNFTs as string[])?.reduce((sum, current) => sum + BigInt(current), 0n) || 0n)
   }, [yourNFTs])
 
   const { writeAsync, status, data, reset } = useContractWrite(config)
@@ -149,25 +144,20 @@ const Home: NextPage = () => {
     if (isSuccess || isError) {
       setIsMinting(false)
       setStartTime(0)
-      reset();
+      reset()
     }
   }, [isSuccess, isError, startTime, appendSpeed, chain?.name, isMinting, reset])
 
   const onMint = async () => {
-    setIsMinting(true);
+    setIsMinting(true)
     try {
-      await writeAsync?.();
-      console.log("START", Date.now());
-      setStartTime(Date.now());
+      await writeAsync?.()
+      console.log("START", Date.now())
+      setStartTime(Date.now())
     } catch (error: any) {
-      setIsMinting(false);
-      reset();
+      setIsMinting(false)
+      reset()
     }
-  };
-
-  // To avoid hydration issues during SSR
-  if (!isClient) {
-    return null
   }
 
   return (
@@ -238,7 +228,7 @@ const Home: NextPage = () => {
             <Box width="100%" mt="16px" mb="16px">
               <Divider />
             </Box>
-            <Button variant='contained' color="primary" disabled={isLoading || !writeAsync || !address || isMinting || !isSupportedChain} onClick={onMint} startIcon={address && (isLoading || !writeAsync || isMinting) ?  <StyledCircularProgress /> : null}>
+            <Button variant='contained' color="primary" disabled={isLoading || !writeAsync || !address || isMinting || !isSupportedChain} onClick={onMint} startIcon={showAddress && (isLoading || !writeAsync || isMinting) ?  <StyledCircularProgress /> : null}>
               Mint an NFT
             </Button>
             <Box mt="8px">
@@ -258,7 +248,7 @@ const Home: NextPage = () => {
               </Box>
             </Box>
             <Box width="100%" display="flex" justifyContent="space-around" flexDirection="row" mt="8px">
-              {txSpeeds.map((x) => (
+              {txSpeedsState.map((x) => (
                 <Box key={x.chain} display="flex" flexDirection="column" alignItems="center">
                   <TextNormal>{x.label}</TextNormal>
                   {x.speed.map((speed) => (
