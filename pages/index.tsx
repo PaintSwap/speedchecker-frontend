@@ -189,7 +189,7 @@ const Home: NextPage = () => {
         />
         <meta
           name="twitter:image"
-          content="https://sonic.paintswap.app/og.png"
+          content="https://sonic.paintswap.io/og.png"
         />
         <meta name="twitter:domain" content="sonic.paintswap.app" />
         <meta name="twitter:site" content="@paintoshi" />
@@ -206,7 +206,7 @@ const Home: NextPage = () => {
         <meta property="og:description" content="The upcoming Fantom network" />
         <meta
           property="og:image"
-          content="https://sonic.paintswap.app/og.png"
+          content="https://sonic.paintswap.io/og.png"
         />
         <meta property="og:url" content="https://sonic.paintswap.app" />
       </Head>
