@@ -110,7 +110,7 @@ const Home: NextPage = () => {
       setCurrentTime(0)
       reset()
       console.error(error)
-      trackEvent("Mint Error", "Contract", error?.message)
+      trackEvent("Mint Error", "Contract")
     }
   }
 
