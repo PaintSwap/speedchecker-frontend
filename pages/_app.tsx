@@ -37,7 +37,7 @@ const metadata = {
 
 const sonic: Chain = {
   ...fantom,
-  id: 251, // What to use here?
+  id: 64240,
   /**
    * contracts: {
    *   {multicall3: {address: '0xca11bde05977b3631167028862be2a173976ca11'}
@@ -46,13 +46,19 @@ const sonic: Chain = {
   name: 'Sonic',
   network: 'sonic',
   rpcUrls: {
-   default: {http: ['https://rpc.ftm.tools/'] as const}, // To satisfy readonly
-   public: {http: ['https://rpc.ftm.tools/'] as const} // To satisfy readonly
+   default: {http: ['https://rpcapi.sonic.fantom.network/'] as const}, // To satisfy readonly
+   public: {http: ['https://rpcapi.sonic.fantom.network/'] as const} // To satisfy readonly
+  },
+  blockExplorers: {
+    default: {
+      name: 'Sonic Explorer',
+      url: 'https://public-sonic.fantom.network',
+    },
   },
 }
 
 const { chains, publicClient } = configureChains(
-  [fantom, avalanche],
+  [sonic, fantom, avalanche],
   [
     walletConnectProvider({ projectId }),
     publicProvider(),
