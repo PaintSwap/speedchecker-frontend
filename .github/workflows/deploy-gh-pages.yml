@@ -19,6 +19,8 @@ jobs:
           cache: yarn
 
       - name: Build
+        env:
+          NEXT_PUBLIC_WC_ID: ${{ secrets.NEXT_PUBLIC_WC_ID }}
         run: |
           yarn install
           yarn build
