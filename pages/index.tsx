@@ -298,6 +298,9 @@ const Home: NextPage = () => {
             <Box mb="0">
               <a href="https://github.com/PaintSwap/fantom-sonic-frontend" target="_blank">Github Source</a>
             </Box>
+            <Box mt="8px">
+              <a href="https://public-sonic.fantom.network/" target="_blank">Fantom Sonic Open Dashboard</a>
+            </Box>
           </div>
         </div>
       </main>
