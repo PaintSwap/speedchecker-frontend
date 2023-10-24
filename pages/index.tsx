@@ -257,6 +257,11 @@ const Home: NextPage = () => {
                     </ToggleButton>
                   ))}
                 </ToggleButtonGroup>
+                {chain?.id === 64240 && (
+                  <Box mt="8px">
+                    <TextNormal fontSize="14px"><a href="https://public-sonic.fantom.network/account" target="_blank">Get Free Sonic FTM</a></TextNormal>
+                  </Box>
+                )}
               </>
             )}
             <Box mt="8px">
