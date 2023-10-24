@@ -20,8 +20,6 @@ interface MyAppProps extends AppProps {
 const env = process.env
 const projectId = env?.NEXT_PUBLIC_WC_ID || ''
 
-console.info("WC", `${projectId?.slice(0, 4)}...`)
-
 // 2. Create wagmiConfig
 const metadata = {
   name: 'Web3Modal',

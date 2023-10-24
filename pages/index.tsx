@@ -44,6 +44,11 @@ const Home: NextPage = () => {
   const [txSpeedsState, setTxSpeedsState] = useState<SpeedList[]>(nullSpeed)
   const [txSpeeds, setTxSpeeds] = usePersistState<SpeedList[]>(nullSpeed, 'txSpeedHistory')
 
+  const projectId = process.env?.NEXT_PUBLIC_WC_ID || ''
+  useEffect(() => {
+    console.info("WC", `${projectId?.slice(0, 4)}...`)
+  }, [projectId])
+
   const handleChange = (
     event: React.MouseEvent<HTMLElement>,
     newNetwork: number,
