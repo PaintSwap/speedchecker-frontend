@@ -75,14 +75,14 @@ const Home: NextPage = () => {
   }, [txSpeeds, setTxSpeeds])
 
   const { config } = usePrepareContractWrite({
-    address: "0x0092d800c334B8056Fa07eb1C161178567ea1449",
+    address: "0x493F7909E5CA979646Abb86A81a11701420B784F",
     abi: contractABI,
     functionName: "mint",
     args: [],
   })
 
   const { data: yourNFTs } = useContractRead({
-    address: "0x0092d800c334B8056Fa07eb1C161178567ea1449",
+    address: "0x493F7909E5CA979646Abb86A81a11701420B784F",
     abi: contractABI,
     functionName: "getAllNFTs",
     args: [address],
