@@ -97,7 +97,7 @@ const Home: NextPage = () => {
     setIsMinting(true)
     try {
       await writeAsync?.()
-      console.log("START", Date.now())
+      console.info("START", Date.now())
       setStartTime(Date.now())
     } catch (error: any) {
       setIsMinting(false)
@@ -112,7 +112,7 @@ const Home: NextPage = () => {
 
   useEffect(() => {
     if (status === "error"  && startTime > 0) {
-      console.log("ERROR", Date.now())
+      console.error("ERROR", Date.now())
       setStartTime(0)
       setCurrentTime(0)
     }
@@ -120,7 +120,7 @@ const Home: NextPage = () => {
 
   useEffect(() => {
     if ((isSuccess || isError) && startTime > 0 && isMinting) {
-      console.log(`Time taken ${Date.now() - startTime}ms`)
+      console.info(`Time taken ${Date.now() - startTime}ms`)
       appendSpeed(chain?.name || "unknown", Date.now() - startTime)
     }
     if (isSuccess || isError) {

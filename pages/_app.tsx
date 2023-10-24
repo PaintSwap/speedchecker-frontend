@@ -17,7 +17,10 @@ interface MyAppProps extends AppProps {
 }
 
 // 1. Get projectId
-const projectId = '97235759ff6e7ec7545379f2a2046295'
+const env = process.env
+const projectId = env?.NEXT_PUBLIC_WC_ID || ''
+
+console.info("WC", `${projectId?.slice(0, 4)}...`)
 
 // 2. Create wagmiConfig
 const metadata = {

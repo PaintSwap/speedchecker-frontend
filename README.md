@@ -12,6 +12,8 @@ Prerequisites:
 
 Run development server:
 
+Copy .env.sample to .env.local and add wallet connect project ID
+
 ```bash
 yarn install
 yarn dev
