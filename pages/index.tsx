@@ -262,7 +262,7 @@ const Home: NextPage = () => {
               {txSpeedsState.map((x) => (
                 <Box key={x.chain} display="flex" flexDirection="column" alignItems="center" minWidth="80px">
                   <TextNormal>{x.label}</TextNormal>
-                  {x.speed.map((speed) => (
+                  {x.speed.slice().reverse().map((speed) => (
                     <TextSubtle key={speed.timestamp}>{Number((speed.speed || 0) / 1000).toFixed(1)} s</TextSubtle>
                   ))}
                 </Box>
