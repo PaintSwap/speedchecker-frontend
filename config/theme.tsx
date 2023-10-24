@@ -18,7 +18,7 @@ palette: {
       main: '#1045ff',
     },
     secondary: {
-      main: '#FFF',
+      main: 'rgb(250, 250, 250)',
     },
     subtle: {
       main: '#7d8fd1',

@@ -1,7 +1,7 @@
 import '@/styles/globals.css'
 import type { AppProps } from 'next/app'
 import { createWeb3Modal, defaultWagmiConfig } from '@web3modal/wagmi/react'
-import { WagmiConfig } from 'wagmi'
+import { Chain, WagmiConfig } from 'wagmi'
 import { avalanche, fantom } from 'wagmi/chains'
 import { ThemeProvider } from '@mui/material/styles'
 import CssBaseline from '@mui/material/CssBaseline'
@@ -25,6 +25,22 @@ const metadata = {
   description: 'Fantom Sonic',
   url: 'https://web3modal.com',
   icons: ['https://avatars.githubusercontent.com/u/37784886']
+}
+
+const sonic: Chain = {
+  ...fantom,
+  id: 251, // What to use here?
+  /**
+   * contracts: {
+   *   {multicall3: {address: '0xca11bde05977b3631167028862be2a173976ca11'}
+   * },
+   */
+  name: 'Sonic',
+  network: 'sonic',
+  rpcUrls: {
+   default: {http: ['https://rpc.ftm.tools/'] as const}, // To satisfy readonly
+   public: {http: ['https://rpc.ftm.tools/'] as const} // To satisfy readonly
+  },
 }
 
 const chains = [fantom, avalanche]

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { Manrope } from "next/font/google"
 import styles from "@/styles/Home.module.css"
 /* eslint-disable import/no-default-export */
@@ -27,8 +27,8 @@ type SpeedList = {
 }
 
 const nullSpeed = [
-  {chain: "Fantom", label: "Fantom", speed: []},
   {chain: "Sonic", label: "Sonic", speed: []},
+  {chain: "Fantom", label: "Fantom", speed: []},
   {chain: "Avalanche", label: "Avalanche", speed: []}
 ]
 
@@ -37,11 +37,12 @@ const Home: NextPage = () => {
   const [networkValue, setNetworkValue] = useState<number>(250)
   const [currentChains, setCurrentChains] = useState<Chain[]>([])
   const [startTime, setStartTime] = useState<number>(0)
+  const [currentTime, setCurrentTime] = useState<number>(0)
   const [isMinting, setIsMinting] = useState(false)
   const [isSupportedChain, setIsSupportedChain] = useState(false);
   const [totalNFTs, setTotalNFTs] = useState<bigint>(0n)
   const [txSpeedsState, setTxSpeedsState] = useState<SpeedList[]>(nullSpeed)
-  const [txSpeeds, setTxSpeeds] = usePersistState<SpeedList[]>(nullSpeed, 'txSpeeds')
+  const [txSpeeds, setTxSpeeds] = usePersistState<SpeedList[]>(nullSpeed, 'txSpeedHistory')
 
   const handleChange = (
     event: React.MouseEvent<HTMLElement>,
@@ -56,6 +57,89 @@ const Home: NextPage = () => {
   const { chain } = useNetwork()
   const { chains, error, isLoading: isLoadingChain, pendingChainId, switchNetwork } =
     useSwitchNetwork()
+
+  // Append latest speed to matching network list
+  const appendSpeed = useCallback((chain: string, speed: number) => {
+    const newSpeeds = txSpeeds.map((x) => {
+      if (x?.chain?.toLowerCase() === chain?.toLowerCase()) {
+        x.speed.push({speed: speed, timestamp: Date.now()})
+      }
+      return x
+    })
+    setTxSpeeds(newSpeeds)
+  }, [txSpeeds, setTxSpeeds])
+
+  const { config } = usePrepareContractWrite({
+    address: "0xE33B9cAea42ead9D2f6e88489A888CA75a8D09Aa",
+    abi: contractABI,
+    functionName: "mint",
+    args: [],
+  })
+
+  const { data: yourNFTs } = useContractRead({
+    address: "0xE33B9cAea42ead9D2f6e88489A888CA75a8D09Aa",
+    abi: contractABI,
+    functionName: "getAllNFTs",
+    args: [address],
+    watch: true
+  })
+
+  const { writeAsync, status, data, reset } = useContractWrite(config)
+
+  // Existing
+  const { isLoading, isSuccess, isError } = useWaitForTransaction({
+    hash: data?.hash,
+  }) // existing
+
+  const isMintingLoading = useMemo(() => showAddress && (isLoading || isMinting), [showAddress, isLoading, isMinting])
+
+  const onMint = async () => {
+    setIsMinting(true)
+    try {
+      await writeAsync?.()
+      console.log("START", Date.now())
+      setStartTime(Date.now())
+    } catch (error: any) {
+      setIsMinting(false)
+      setCurrentTime(0)
+      reset()
+    }
+  }
+
+  useEffect(() => {
+    setTotalNFTs((yourNFTs as string[])?.reduce((sum, current) => sum + BigInt(current), 0n) || 0n)
+  }, [yourNFTs])
+
+  useEffect(() => {
+    if (status === "error"  && startTime > 0) {
+      console.log("ERROR", Date.now())
+      setStartTime(0)
+      setCurrentTime(0)
+    }
+  }, [status, startTime])
+
+  useEffect(() => {
+    if ((isSuccess || isError) && startTime > 0 && isMinting) {
+      console.log(`Time taken ${Date.now() - startTime}ms`)
+      appendSpeed(chain?.name || "unknown", Date.now() - startTime)
+    }
+    if (isSuccess || isError) {
+      setIsMinting(false)
+      setStartTime(0)
+      setCurrentTime(0)
+      reset()
+    }
+  }, [isSuccess, isError, startTime, appendSpeed, chain?.name, isMinting, reset])
+
+  // Update current time every second when minting
+  useEffect(() => {
+    if (isMinting) {
+      const interval = setInterval(() => {
+        setCurrentTime(startTime > 0 ? (Date.now() - startTime) / 1000 : 0)
+      }, 100)
+      return () => clearInterval(interval)
+    }
+  }, [isMinting, startTime])
 
   useEffect(() => {
     setIsSupportedChain(chains.find((x) => x.id === networkValue) !== undefined)
@@ -91,74 +175,6 @@ const Home: NextPage = () => {
     }
   }, [chain?.id, networkValue])
 
-  // Append latest speed to matching network list
-  const appendSpeed = useCallback((chain: string, speed: number) => {
-    const newSpeeds = txSpeeds.map((x) => {
-      if (x?.chain?.toLowerCase() === chain?.toLowerCase()) {
-        x.speed.push({speed: speed, timestamp: Date.now()})
-      }
-      return x
-    })
-    setTxSpeeds(newSpeeds)
-  }, [txSpeeds, setTxSpeeds])
-
-  const { config } = usePrepareContractWrite({
-    address: "0xE33B9cAea42ead9D2f6e88489A888CA75a8D09Aa",
-    abi: contractABI,
-    functionName: "mint",
-    args: [],
-  })
-
-  const { data: yourNFTs } = useContractRead({
-    address: "0xE33B9cAea42ead9D2f6e88489A888CA75a8D09Aa",
-    abi: contractABI,
-    functionName: "getAllNFTs",
-    args: [address],
-    watch: true
-  })
-
-  useEffect(() => {
-    setTotalNFTs((yourNFTs as string[])?.reduce((sum, current) => sum + BigInt(current), 0n) || 0n)
-  }, [yourNFTs])
-
-  const { writeAsync, status, data, reset } = useContractWrite(config)
-
-  useEffect(() => {
-    if (status === "error"  && startTime > 0) {
-      console.log("ERROR", Date.now())
-      setStartTime(0)
-    }
-  }, [status, startTime])
-
-  // Existing
-  const { isLoading, isSuccess, isError } = useWaitForTransaction({
-    hash: data?.hash,
-  }) // existing
-
-  useEffect(() => {
-    if ((isSuccess || isError) && startTime > 0 && isMinting) {
-      console.log(`Time taken ${Date.now() - startTime}ms`)
-      appendSpeed(chain?.name || "unknown", Date.now() - startTime)
-    }
-    if (isSuccess || isError) {
-      setIsMinting(false)
-      setStartTime(0)
-      reset()
-    }
-  }, [isSuccess, isError, startTime, appendSpeed, chain?.name, isMinting, reset])
-
-  const onMint = async () => {
-    setIsMinting(true)
-    try {
-      await writeAsync?.()
-      console.log("START", Date.now())
-      setStartTime(Date.now())
-    } catch (error: any) {
-      setIsMinting(false)
-      reset()
-    }
-  }
-
   return (
     <>
       <Head>
@@ -186,7 +202,7 @@ const Home: NextPage = () => {
           <div className={styles.mainPanel}>
             <h1 className={styles.title}>Fantom Sonic</h1>
             <p className={styles.titleSub}>
-              Compare FVM Sonic with other networks<br />
+              Compare Sonic with other networks<br />
             </p>
             {showAddress && (
               <Button variant='contained' color="primary" onClick={() => open()}>{abbreviateAddressAsString(address ?? 'N/A')}</Button>
@@ -195,68 +211,67 @@ const Home: NextPage = () => {
               <Button variant='contained' color="primary" onClick={() => open()}>Connect</Button>
             )}
 
-            <Box mt="16px">
-              <TextSubtle>
-                Choose Network
-              </TextSubtle>
-            </Box>
-            <ToggleButtonGroup
-              color="primary"
-              value={networkValue}
-              exclusive
-              onChange={handleChange}
-              aria-label="Network"
-            >
-              {currentChains.map((x) => (
-                <ToggleButton
-                  disabled={!switchNetwork || x.id === chain?.id || isLoading || !address || isMinting}
-                  key={x.id}
-                  onClick={() => switchNetwork?.(x.id)}
-                  value={x.id}
-                  size="small"
-                  sx={{paddingBottom: '5px'}}
+            {showAddress && (
+              <>
+                <Box mt="16px" mb="4px">
+                  <TextSubtle>
+                    Choose Network
+                  </TextSubtle>
+                </Box>
+                <ToggleButtonGroup
+                  color="primary"
+                  value={networkValue}
+                  exclusive
+                  onChange={handleChange}
+                  aria-label="Network"
                 >
-                  {x.name}
-                </ToggleButton>
-              ))}
-            </ToggleButtonGroup>
+                  {currentChains.map((x) => (
+                    <ToggleButton
+                      disabled={!switchNetwork || x.id === chain?.id || isLoading || !address || isMinting}
+                      key={x.id}
+                      onClick={() => switchNetwork?.(x.id)}
+                      value={x.id}
+                      size="small"
+                      sx={{paddingBottom: '5px'}}
+                    >
+                      {x.name}
+                    </ToggleButton>
+                  ))}
+                </ToggleButtonGroup>
+              </>
+            )}
             <Box mt="8px">
-              <TextWarning>{error && error.message}</TextWarning>
+              <TextWarning fontSize="14px">{error && error.message}</TextWarning>
               {!isSupportedChain && !!showAddress && (
-                <TextWarning>Unsupported Network Detected</TextWarning>
+                <TextWarning fontSize="14px">Unsupported Network Detected</TextWarning>
               )}
             </Box>
             <Box width="100%" mt="16px" mb="16px">
               <Divider />
             </Box>
-            <Button variant='contained' color="primary" disabled={isLoading || !writeAsync || !address || isMinting || !isSupportedChain} onClick={onMint} startIcon={showAddress && (isLoading || !writeAsync || isMinting) ?  <StyledCircularProgress /> : null}>
-              Mint an NFT
+            <Button variant='contained' color="primary" disabled={isLoading || !writeAsync || !address || isMinting || !isSupportedChain} onClick={onMint} startIcon={isMintingLoading ?  <StyledCircularProgress /> : null} sx={{textTransform: 'unset'}}>
+              {isMintingLoading ? `Minting (${currentTime.toFixed(1)} sec)` : 'Mint NFT'}
             </Button>
             <Box mt="8px">
-              <TextNormal>You have: {totalNFTs.toString()} NFTs</TextNormal>
+              <TextNormal fontSize="14px">Owned: {totalNFTs.toString()} NFTs</TextNormal>
             </Box>
             <Box width="100%" mt="16px" mb="16px">
               <Divider />
             </Box>
-            <Box alignItems="start" display="flex" flexDirection="row">
-              <TextSubtle>
-                Speed History
-              </TextSubtle>
-              <Box ml="8px">
-                <Button variant='text' size="small" onClick={() => setTxSpeeds(nullSpeed)} style={{lineHeight: 1.2}}>
-                  Clear
-                </Button>
-              </Box>
-            </Box>
             <Box width="100%" display="flex" justifyContent="space-around" flexDirection="row" mt="8px">
               {txSpeedsState.map((x) => (
-                <Box key={x.chain} display="flex" flexDirection="column" alignItems="center">
+                <Box key={x.chain} display="flex" flexDirection="column" alignItems="center" minWidth="80px">
                   <TextNormal>{x.label}</TextNormal>
                   {x.speed.map((speed) => (
-                    <TextSubtle key={speed.timestamp}>{(speed.speed || 0) / 1000} sec</TextSubtle>
+                    <TextSubtle key={speed.timestamp}>{Number((speed.speed || 0) / 1000).toFixed(1)} s</TextSubtle>
                   ))}
                 </Box>
               ))}
+            </Box>
+            <Box alignItems="center" mt="16px">
+              <Button variant='text' size="small" onClick={() => setTxSpeeds(nullSpeed)} style={{lineHeight: 1.2}}>
+                Clear Speed History
+              </Button>
             </Box>
             <Box width="100%" mt="16px" mb="16px">
               <Divider />

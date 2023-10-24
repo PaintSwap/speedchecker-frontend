@@ -1,21 +1,25 @@
 import { CircularProgress, styled } from "@mui/material"
 
-export const TextNormal = styled('div')(({ theme }) => ({
-  fontSize: 16,
+interface TextProps {
+  fontSize?: string;
+}
+
+export const TextNormal = styled('div')<TextProps>(({ theme, fontSize = "16px" }) => ({
+  fontSize,
   fontWeight: 400,
   textAlign: 'center',
   color: theme.palette.secondary.main,
-}))
+}));
 
-export const TextSubtle = styled('div')(({ theme }) => ({
-  fontSize: 16,
+export const TextSubtle = styled('div')<TextProps>(({ theme, fontSize = "16px" }) => ({
+  fontSize,
   fontWeight: 400,
   textAlign: 'center',
   color: theme.palette.subtle.main,
 }))
 
-export const TextWarning = styled('div')(({ theme }) => ({
-  fontSize: 14,
+export const TextWarning = styled('div')<TextProps>(({ theme, fontSize = "16px" }) => ({
+  fontSize,
   fontWeight: 400,
   textAlign: 'center',
   color: theme.palette.warning.main,
