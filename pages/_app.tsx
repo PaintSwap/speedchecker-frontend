@@ -1,13 +1,18 @@
 import '@/styles/globals.css'
 import type { AppProps } from 'next/app'
-import { createWeb3Modal, defaultWagmiConfig } from '@web3modal/wagmi/react'
-import { Chain, WagmiConfig } from 'wagmi'
+import { EIP6963Connector, createWeb3Modal, defaultWagmiConfig } from '@web3modal/wagmi/react'
+import { Chain, WagmiConfig, configureChains, createConfig } from 'wagmi'
 import { avalanche, fantom } from 'wagmi/chains'
 import { ThemeProvider } from '@mui/material/styles'
 import CssBaseline from '@mui/material/CssBaseline'
 import { CacheProvider, EmotionCache } from '@emotion/react'
 import theme from '../config/theme'
 import createEmotionCache from '../config/createEmotionCache'
+import { publicProvider } from 'wagmi/providers/public'
+import { walletConnectProvider } from '@web3modal/wagmi'
+import { WalletConnectConnector } from 'wagmi/connectors/walletConnect'
+import { InjectedConnector } from 'wagmi/connectors/injected'
+import { CoinbaseWalletConnector } from 'wagmi/connectors/coinbaseWallet'
 
 // Client-side cache, shared for the whole session of the user in the browser.
 const clientSideEmotionCache = createEmotionCache()
@@ -44,8 +49,26 @@ const sonic: Chain = {
   },
 }
 
-const chains = [fantom, avalanche]
-const wagmiConfig = defaultWagmiConfig({ chains, projectId, metadata })
+const { chains, publicClient } = configureChains(
+  [fantom, avalanche],
+  [
+    walletConnectProvider({ projectId }),
+    publicProvider(),
+  ],
+  // Instead of default 4_000 (4sec)
+  { pollingInterval: 1_000 },
+)
+
+const wagmiConfig = createConfig({
+  autoConnect: true,
+  connectors: [
+    new WalletConnectConnector({ chains, options: { projectId, showQrModal: false, metadata } }),
+    new EIP6963Connector({ chains }),
+    new InjectedConnector({ chains, options: { shimDisconnect: true } }),
+    new CoinbaseWalletConnector({ chains, options: { appName: metadata.name } })
+  ],
+  publicClient
+})
 
 // 3. Create modal
 createWeb3Modal({ 

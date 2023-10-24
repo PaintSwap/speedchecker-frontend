@@ -12,6 +12,7 @@ import { StyledCircularProgress, TextNormal, TextSubtle, TextWarning } from '@/C
 import contractABI from "../helpers/SonicABI"
 import usePersistState from "../helpers/usePersistState"
 import Head from "next/head"
+import { isEqual } from 'lodash'
 
 const manrope = Manrope({ subsets: ["latin"] })
 
@@ -33,7 +34,7 @@ const nullSpeed = [
 ]
 
 const Home: NextPage = () => {
-  const [showAddress, setShowAddress] = useState<`0x${string}` | null>(null)
+  const [showAddress, setShowAddress] = useState<`0x${string}` | undefined>(undefined)
   const [networkValue, setNetworkValue] = useState<number>(250)
   const [currentChains, setCurrentChains] = useState<Chain[]>([])
   const [startTime, setStartTime] = useState<number>(0)
@@ -86,15 +87,16 @@ const Home: NextPage = () => {
     abi: contractABI,
     functionName: "getAllNFTs",
     args: [address],
-    watch: true
+    watch: true,
+    enabled: !!address,
   })
 
   const { writeAsync, status, data, reset } = useContractWrite(config)
 
-  // Existing
   const { isLoading, isSuccess, isError } = useWaitForTransaction({
     hash: data?.hash,
-  }) // existing
+    confirmations: 0,
+  })
 
   const isMintingLoading = useMemo(() => showAddress && (isLoading || isMinting), [showAddress, isLoading, isMinting])
 
@@ -147,14 +149,16 @@ const Home: NextPage = () => {
   }, [isMinting, startTime])
 
   useEffect(() => {
-    setIsSupportedChain(chains.find((x) => x.id === networkValue) !== undefined)
+    if (networkValue && chains?.length) {
+      setIsSupportedChain(!!chains.find((x) => x.id === networkValue))
+    }
   }, [chains, networkValue])
 
   useEffect(() => {
     if (address) {
       setShowAddress(address)
     } else {
-      setShowAddress(null)
+      setShowAddress(undefined)
     }
   }, [address])
 
@@ -168,10 +172,10 @@ const Home: NextPage = () => {
 
   // Update current chains
   useEffect(() => {
-    if (chains) {
+    if (chains && !isEqual(chains, currentChains)) {
       setCurrentChains(chains)
     }
-  }, [chains])
+  }, [chains, currentChains])
 
   // Change network value when chain.id changes
   useEffect(() => {
