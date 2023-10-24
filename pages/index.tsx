@@ -3,10 +3,9 @@ import { Manrope } from "next/font/google"
 import styles from "@/styles/Home.module.css"
 /* eslint-disable import/no-default-export */
 import type { NextPage } from 'next'
-import Script from 'next/script'
 import { useWeb3Modal } from '@web3modal/wagmi/react'
 import { useAccount, useNetwork, useSwitchNetwork, useContractRead, useContractWrite, usePrepareContractWrite, useWaitForTransaction, Chain } from 'wagmi'
-import { abbreviateAddressAsString } from '@/helpers/Utilities'
+import { abbreviateAddressAsString, trackCustomEvent, trackEvent } from '@/helpers/Utilities'
 import { Button, ToggleButton, ToggleButtonGroup, Divider, Box } from '@mui/material'
 import { StyledCircularProgress, TextNormal, TextSubtle, TextWarning } from '@/Components/StyledComps'
 import contractABI from "../helpers/SonicABI"
@@ -110,6 +109,8 @@ const Home: NextPage = () => {
       setIsMinting(false)
       setCurrentTime(0)
       reset()
+      console.error(error)
+      trackEvent("Mint Error", "Contract", error?.message)
     }
   }
 
@@ -119,22 +120,31 @@ const Home: NextPage = () => {
 
   useEffect(() => {
     if (status === "error"  && startTime > 0) {
-      console.error("ERROR", Date.now())
       setStartTime(0)
       setCurrentTime(0)
+      setIsMinting(false)
+      trackEvent("Status Error 1")
+      console.error("Status Error 1")
     }
   }, [status, startTime])
 
+  // Transaction finished (or error)
   useEffect(() => {
     if ((isSuccess || isError) && startTime > 0 && isMinting) {
-      console.info(`Time taken ${Date.now() - startTime}ms`)
-      appendSpeed(chain?.name || "unknown", Date.now() - startTime)
+      const diff = Date.now() - startTime
+      console.info(`Time taken ${diff}ms`)
+      appendSpeed(chain?.name || "unknown", diff)
+      trackEvent(`${chain?.name} tx`, undefined, undefined, diff < 1000 ? Math.round(diff / 100) * 100 : Math.round(diff / 500) * 500)
     }
     if (isSuccess || isError) {
       setIsMinting(false)
       setStartTime(0)
       setCurrentTime(0)
       reset()
+      if (isError) {
+        trackEvent("Status Error 2")
+        console.error("Status Error 2")
+      }
     }
   }, [isSuccess, isError, startTime, appendSpeed, chain?.name, isMinting, reset])
 
@@ -291,26 +301,6 @@ const Home: NextPage = () => {
           </div>
         </div>
       </main>
-      {/* Global Site Tag (gtag.js) - Google Analytics */}
-      <Script
-        strategy="afterInteractive"
-        id="google-tag1"
-        src={`https://www.googletagmanager.com/gtag/js?id=G-NVFJDSR57S`}
-      />
-      <Script
-        strategy="afterInteractive"
-        id="google-tag2"
-        dangerouslySetInnerHTML={{
-          __html: `
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', 'G-NVFJDSR57S', {
-              page_path: window.location.pathname,
-            });
-          `,
-        }}
-      />
     </>
   );
 };

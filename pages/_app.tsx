@@ -1,6 +1,6 @@
 import '@/styles/globals.css'
 import type { AppProps } from 'next/app'
-import { EIP6963Connector, createWeb3Modal, defaultWagmiConfig } from '@web3modal/wagmi/react'
+import { EIP6963Connector, createWeb3Modal } from '@web3modal/wagmi/react'
 import { Chain, WagmiConfig, configureChains, createConfig } from 'wagmi'
 import { avalanche, fantom } from 'wagmi/chains'
 import { ThemeProvider } from '@mui/material/styles'
@@ -13,6 +13,7 @@ import { walletConnectProvider } from '@web3modal/wagmi'
 import { WalletConnectConnector } from 'wagmi/connectors/walletConnect'
 import { InjectedConnector } from 'wagmi/connectors/injected'
 import { CoinbaseWalletConnector } from 'wagmi/connectors/coinbaseWallet'
+import ReactGA from "react-ga4"
 
 // Client-side cache, shared for the whole session of the user in the browser.
 const clientSideEmotionCache = createEmotionCache()
@@ -24,6 +25,7 @@ interface MyAppProps extends AppProps {
 // 1. Get projectId
 const env = process.env
 const projectId = env?.NEXT_PUBLIC_WC_ID || ''
+const gaID = env?.NEXT_PUBLIC_GA_ID || ''
 
 // 2. Create wagmiConfig
 const metadata = {
@@ -82,6 +84,8 @@ createWeb3Modal({
     '--w3m-color-mix-strength': 20
   }
 })
+
+ReactGA.initialize(gaID)
 
 export default function App(props: MyAppProps) {
   const { Component, emotionCache = clientSideEmotionCache, pageProps } = props

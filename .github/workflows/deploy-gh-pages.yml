@@ -21,6 +21,7 @@ jobs:
       - name: Build
         env:
           NEXT_PUBLIC_WC_ID: ${{ secrets.NEXT_PUBLIC_WC_ID }}
+          NEXT_PUBLIC_GA_ID: ${{ secrets.NEXT_PUBLIC_GA_ID }}
         run: |
           yarn install
           yarn build
