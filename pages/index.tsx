@@ -5,7 +5,7 @@ import styles from "@/styles/Home.module.css"
 import type { NextPage } from 'next'
 import { useWeb3Modal } from '@web3modal/wagmi/react'
 import { useAccount, useNetwork, useSwitchNetwork, useContractRead, useContractWrite, usePrepareContractWrite, useWaitForTransaction, Chain } from 'wagmi'
-import { abbreviateAddressAsString, trackCustomEvent, trackEvent } from '@/helpers/Utilities'
+import { abbreviateAddressAsString, trackEvent } from '@/helpers/Utilities'
 import { Button, ToggleButton, ToggleButtonGroup, Divider, Box } from '@mui/material'
 import { StyledCircularProgress, TextNormal, TextSubtle, TextWarning } from '@/Components/StyledComps'
 import contractABI from "../helpers/SonicABI"
@@ -246,7 +246,7 @@ const Home: NextPage = () => {
                 >
                   {currentChains.map((x) => (
                     <ToggleButton
-                      disabled={!switchNetwork || x.id === chain?.id || isLoading || !address || isMinting}
+                      disabled={!switchNetwork || x.id === chain?.id || isLoading || !showAddress || isMinting}
                       key={x.id}
                       onClick={() => switchNetwork?.(x.id)}
                       value={x.id}
@@ -273,7 +273,7 @@ const Home: NextPage = () => {
             <Box width="100%" mt="16px" mb="16px">
               <Divider />
             </Box>
-            <Button variant='contained' color="primary" disabled={isLoading || !writeAsync || !address || isMinting || !isSupportedChain} onClick={onMint} startIcon={isMintingLoading ?  <StyledCircularProgress /> : null} sx={{textTransform: 'unset'}}>
+            <Button variant='contained' color="primary" disabled={isLoading || !writeAsync || !showAddress || isMinting || !isSupportedChain} onClick={onMint} startIcon={isMintingLoading ?  <StyledCircularProgress /> : null} sx={{textTransform: 'unset'}}>
               {isMintingLoading ? `Minting (${currentTime.toFixed(1)} sec)` : 'Mint NFT'}
             </Button>
             <Box mt="8px">
