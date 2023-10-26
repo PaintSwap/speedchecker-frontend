@@ -38,11 +38,12 @@ const metadata = {
 const sonic: Chain = {
   ...fantom,
   id: 64240,
-  /**
-   * contracts: {
-   *   {multicall3: {address: '0xca11bde05977b3631167028862be2a173976ca11'}
-   * },
-   */
+  contracts: {
+    multicall3: {
+      address: '0xea8211afd0596b663890df4a660e59a363a301fd',
+      blockCreated: 4005398,
+    },
+  },
   name: 'Sonic',
   network: 'sonic',
   rpcUrls: {
