@@ -37,7 +37,7 @@ const metadata = {
 
 const sonic: Chain = {
   ...fantom,
-  id: 64240,
+  id: 64165,
   contracts: {
     multicall3: {
       address: '0xea8211afd0596b663890df4a660e59a363a301fd',
@@ -47,8 +47,8 @@ const sonic: Chain = {
   name: 'Sonic',
   network: 'sonic',
   rpcUrls: {
-   default: {http: ['https://rpcapi.sonic.fantom.network/'] as const}, // To satisfy readonly
-   public: {http: ['https://rpcapi.sonic.fantom.network/'] as const} // To satisfy readonly
+   default: {http: ['https://rpc.sonic.fantom.network/'] as const}, // To satisfy readonly
+   public: {http: ['https://rpc.sonic.fantom.network/'] as const} // To satisfy readonly
   },
   blockExplorers: {
     default: {
