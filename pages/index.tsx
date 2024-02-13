@@ -74,15 +74,29 @@ const Home: NextPage = () => {
     setTxSpeeds(newSpeeds)
   }, [txSpeeds, setTxSpeeds])
 
+  const nftContract = useMemo(() => {
+    switch (networkValue) {
+      // Fantom
+      case 250:
+        return '0x493F7909E5CA979646Abb86A81a11701420B784F'
+      // Avax
+      case 43114:
+        return '0x493F7909E5CA979646Abb86A81a11701420B784F'
+      // Sonic
+      case 64165:
+        return '0x2B6639D06A6Aa36B122491d1Cd839253a2324803'
+    }
+  }, [networkValue])
+
   const { config } = usePrepareContractWrite({
-    address: "0x493F7909E5CA979646Abb86A81a11701420B784F",
+    address: nftContract,
     abi: contractABI,
     functionName: "mint",
     args: [],
   })
 
   const { data: yourNFTs } = useContractRead({
-    address: "0x493F7909E5CA979646Abb86A81a11701420B784F",
+    address: nftContract,
     abi: contractABI,
     functionName: "getAllNFTs",
     args: [address],
@@ -257,7 +271,7 @@ const Home: NextPage = () => {
                     </ToggleButton>
                   ))}
                 </ToggleButtonGroup>
-                {chain?.id === 64240 && (
+                {chain?.id === 64165 && (
                   <Box mt="8px">
                     <TextNormal fontSize="14px"><a href="https://public-sonic.fantom.network/account" target="_blank">Get Free Sonic FTM</a></TextNormal>
                   </Box>

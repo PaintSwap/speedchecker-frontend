@@ -40,8 +40,8 @@ const sonic: Chain = {
   id: 64165,
   contracts: {
     multicall3: {
-      address: '0xea8211afd0596b663890df4a660e59a363a301fd',
-      blockCreated: 4005398,
+      address: '0xE33B9cAea42ead9D2f6e88489A888CA75a8D09Aa',
+      blockCreated: 16825253,
     },
   },
   name: 'Sonic',
