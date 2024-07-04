@@ -27,8 +27,8 @@ type SpeedList = {
 }
 
 const nullSpeed = [
-  {chain: "Sonic", label: "Sonic", speed: []},
-  {chain: "Fantom", label: "Fantom", speed: []},
+  {chain: "Sonic", label: "Sonic Test", speed: []},
+  {chain: "Fantom", label: "Fantom Opera", speed: []},
   {chain: "Avalanche", label: "Avalanche", speed: []}
 ]
 
