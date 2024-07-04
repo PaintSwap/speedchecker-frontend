@@ -58,8 +58,16 @@ const sonic: Chain = {
   },
 }
 
+const customFantom = {
+  ...fantom,
+  rpcUrls: {
+    default: {http: ['https://rpcapi.fantom.network/'] as const}, // To satisfy readonly
+    public: {http: ['https://rpcapi.fantom.network/'] as const} // To satisfy readonly
+   },
+}
+
 const { chains, publicClient } = configureChains(
-  [sonic, fantom, avalanche],
+  [sonic, customFantom, avalanche],
   [
     walletConnectProvider({ projectId }),
     publicProvider(),
