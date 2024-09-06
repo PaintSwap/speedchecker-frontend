@@ -63,8 +63,6 @@ const sonic: Chain = {
   },
 }
 
-console.log("sonic", sonic)
-
 const customFantom = {
   ...fantom,
   rpcUrls: {
