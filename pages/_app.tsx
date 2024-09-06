@@ -47,16 +47,23 @@ const sonic: Chain = {
   name: 'Sonic',
   network: 'sonic',
   rpcUrls: {
-   default: {http: ['https://rpc.sonic.fantom.network/'] as const}, // To satisfy readonly
-   public: {http: ['https://rpc.sonic.fantom.network/'] as const} // To satisfy readonly
+   default: {http: ['https://rpc.testnet.soniclabs.com/'] as const}, // To satisfy readonly
+   public: {http: ['https://rpc.testnet.soniclabs.com/'] as const} // To satisfy readonly
   },
   blockExplorers: {
     default: {
       name: 'Sonic Explorer',
-      url: 'https://public-sonic.fantom.network',
+      url: 'https://testnet.soniclabs.com',
     },
   },
+  nativeCurrency: {
+    name: 'Sonic',
+    symbol: 'S',
+    decimals: 18,
+  },
 }
+
+console.log("sonic", sonic)
 
 const customFantom = {
   ...fantom,

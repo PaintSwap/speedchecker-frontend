@@ -273,7 +273,7 @@ const Home: NextPage = () => {
                 </ToggleButtonGroup>
                 {chain?.id === 64165 && (
                   <Box mt="8px">
-                    <TextNormal fontSize="14px"><a href="https://public-sonic.fantom.network/account" target="_blank">Get Free Sonic FTM</a></TextNormal>
+                    <TextNormal fontSize="14px"><a href="https://testnet.soniclabs.com/account" target="_blank">Get Free Sonic $S</a></TextNormal>
                   </Box>
                 )}
               </>
@@ -318,7 +318,7 @@ const Home: NextPage = () => {
               <a href="https://github.com/PaintSwap/fantom-sonic-frontend" target="_blank">Github Source</a>
             </Box>
             <Box mt="8px">
-              <a href="https://public-sonic.fantom.network/" target="_blank">Fantom Sonic Open Dashboard</a>
+              <a href="https://testnet.soniclabs.com" target="_blank">Fantom Sonic Open Dashboard</a>
             </Box>
           </div>
         </div>
