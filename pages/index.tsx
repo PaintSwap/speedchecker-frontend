@@ -303,7 +303,7 @@ const Home: NextPage = () => {
                 <Box key={x.chain} display="flex" flexDirection="column" alignItems="center" minWidth="80px">
                   <TextNormal>{x.label}</TextNormal>
                   <TextNormal fontSize="12px">
-                    {x.average > 0 ? `Ave: ${Number((x.average || 0) / 1000).toFixed(1)} s` : 'Ave: -'}
+                    {x.average > 0 ? `Avg: ${Number((x.average || 0) / 1000).toFixed(1)} s` : 'Avg: -'}
                   </TextNormal>
                   {x.speed.slice().reverse().map((speed) => (
                     <TextSubtle key={speed.timestamp}>{Number((speed.speed || 0) / 1000).toFixed(1)} s</TextSubtle>
