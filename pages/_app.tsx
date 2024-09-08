@@ -97,7 +97,6 @@ createWeb3Modal({
   wagmiConfig,
   projectId,
   chains,
-  defaultChain: fantom,
   themeMode: 'dark',
   themeVariables: {
     '--w3m-color-mix': '#05228c',

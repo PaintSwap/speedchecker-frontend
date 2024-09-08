@@ -24,12 +24,13 @@ type SpeedList = {
   chain: string,
   label: string,
   speed: Speed[]
+  average: number
 }
 
 const nullSpeed = [
-  {chain: "Sonic", label: "Sonic Test", speed: []},
-  {chain: "Fantom", label: "Fantom Opera", speed: []},
-  {chain: "Avalanche", label: "Avalanche", speed: []}
+  {chain: "Sonic", label: "Sonic Test", speed: [], average: -1},
+  {chain: "Fantom", label: "Fantom Opera", speed: [], average: -1},
+  {chain: "Avalanche", label: "Avalanche", speed: [], average: -1}
 ]
 
 const Home: NextPage = () => {
@@ -68,6 +69,7 @@ const Home: NextPage = () => {
     const newSpeeds = txSpeeds.map((x) => {
       if (x?.chain?.toLowerCase() === chain?.toLowerCase()) {
         x.speed.push({speed: speed, timestamp: Date.now()})
+        x.average = x.speed.reduce((sum, current) => sum + current.speed, 0) / x.speed.length
       }
       return x
     })
@@ -300,6 +302,9 @@ const Home: NextPage = () => {
               {txSpeedsState.map((x) => (
                 <Box key={x.chain} display="flex" flexDirection="column" alignItems="center" minWidth="80px">
                   <TextNormal>{x.label}</TextNormal>
+                  <TextNormal fontSize="12px">
+                    {x.average > 0 ? `Ave: ${Number((x.average || 0) / 1000).toFixed(1)} s` : 'Ave: -'}
+                  </TextNormal>
                   {x.speed.slice().reverse().map((speed) => (
                     <TextSubtle key={speed.timestamp}>{Number((speed.speed || 0) / 1000).toFixed(1)} s</TextSubtle>
                   ))}
