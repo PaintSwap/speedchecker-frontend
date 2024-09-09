@@ -78,7 +78,7 @@ const { chains, publicClient } = configureChains(
     publicProvider(),
   ],
   // Instead of default 4_000 (4sec)
-  { pollingInterval: 1_000 },
+  { pollingInterval: 250 },
 )
 
 const wagmiConfig = createConfig({
