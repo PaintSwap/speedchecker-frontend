@@ -1,10 +1,10 @@
+/* eslint-disable import/no-default-export */
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { Manrope } from "next/font/google"
 import styles from "@/styles/Home.module.css"
-/* eslint-disable import/no-default-export */
 import type { NextPage } from 'next'
 import { useWeb3Modal } from '@web3modal/wagmi/react'
-import { useAccount, useNetwork, useSwitchNetwork, useContractRead, useContractWrite, usePrepareContractWrite, useWaitForTransaction, Chain } from 'wagmi'
+import { useAccount, useSwitchChain, useWriteContract } from 'wagmi'
 import { abbreviateAddressAsString, trackEvent } from '@/helpers/Utilities'
 import { Button, ToggleButton, ToggleButtonGroup, Divider, Box } from '@mui/material'
 import { StyledCircularProgress, TextNormal, TextSubtle, TextWarning } from '@/Components/StyledComps'
@@ -12,6 +12,10 @@ import contractABI from "../helpers/SonicABI"
 import usePersistState from "../helpers/usePersistState"
 import Head from "next/head"
 import { isEqual } from 'lodash'
+import { Chain } from "wagmi/chains"
+import { wagmiConfig } from "@/pages/_app"
+import { waitForTransactionReceipt } from "@wagmi/core"
+import useNFTBalance from "@/hooks/useNFTBalance"
 
 const manrope = Manrope({ subsets: ["latin"] })
 
@@ -41,9 +45,11 @@ const Home: NextPage = () => {
   const [currentTime, setCurrentTime] = useState<number>(0)
   const [isMinting, setIsMinting] = useState(false)
   const [isSupportedChain, setIsSupportedChain] = useState(false);
-  const [totalNFTs, setTotalNFTs] = useState<bigint>(0n)
   const [txSpeedsState, setTxSpeedsState] = useState<SpeedList[]>(nullSpeed)
   const [txSpeeds, setTxSpeeds] = usePersistState<SpeedList[]>(nullSpeed, 'txSpeedHistory')
+
+  const { address, chain } = useAccount()
+  const { error, chains, switchChainAsync } = useSwitchChain({ config: wagmiConfig })
 
   const projectId = process.env?.NEXT_PUBLIC_WC_ID || ''
   useEffect(() => {
@@ -58,11 +64,15 @@ const Home: NextPage = () => {
   }
   
   const { open } = useWeb3Modal()
-  const { address } = useAccount()
 
-  const { chain } = useNetwork()
-  const { chains, error, isLoading: isLoadingChain, pendingChainId, switchNetwork } =
-    useSwitchNetwork()
+  const handleSwitchChain = async (chainId: number) => {
+    try {
+      const result = await switchChainAsync({ chainId })
+      console.info("Switched chain", result)
+    } catch (error) {
+      console.error(error)
+    }
+  }
 
   // Append latest speed to matching network list
   const appendSpeed = useCallback((chain: string, speed: number) => {
@@ -77,7 +87,7 @@ const Home: NextPage = () => {
   }, [txSpeeds, setTxSpeeds])
 
   const nftContract = useMemo(() => {
-    switch (networkValue) {
+    switch (chain?.id) {
       // Fantom
       case 250:
         return '0x493F7909E5CA979646Abb86A81a11701420B784F'
@@ -88,83 +98,51 @@ const Home: NextPage = () => {
       case 64165:
         return '0x2B6639D06A6Aa36B122491d1Cd839253a2324803'
     }
-  }, [networkValue])
+  }, [chain?.id])
 
-  const { config } = usePrepareContractWrite({
-    address: nftContract,
-    abi: contractABI,
-    functionName: "mint",
-    args: [],
-  })
+  const { writeContractAsync } = useWriteContract()
+  const { data: totalNFTs, refetch: refetchNFTs } = useNFTBalance({ address, contractAddress: nftContract, abi: contractABI, chainId: chain?.id ?? 250 })
 
-  const { data: yourNFTs } = useContractRead({
-    address: nftContract,
-    abi: contractABI,
-    functionName: "getAllNFTs",
-    args: [address],
-    watch: true,
-    enabled: !!address,
-  })
-
-  const { writeAsync, status, data, reset } = useContractWrite(config)
-
-  const { isLoading, isSuccess, isError } = useWaitForTransaction({
-    hash: data?.hash,
-    confirmations: 0,
-  })
-
-  const isMintingLoading = useMemo(() => showAddress && (isLoading || isMinting), [showAddress, isLoading, isMinting])
+  const isMintingLoading = useMemo(() => showAddress && isMinting, [showAddress, isMinting])
 
   const onMint = async () => {
     setIsMinting(true)
     try {
-      await writeAsync?.()
+      const hash = await writeContractAsync({
+        address: nftContract as `0x${string}`,
+        abi: contractABI,
+        functionName: "mint",
+        args: [],
+      })
       console.info("START", Date.now())
       setStartTime(Date.now())
+      const localStartTime = Date.now()
+      const receipt = await waitForTransactionReceipt(wagmiConfig, {
+        hash: hash,
+        onReplaced: (replacement) => console.info("Tx replaced:", replacement),
+      })
+      if (receipt.status === "success") {
+        const diff = Date.now() - localStartTime
+        console.info(`Time taken ${diff}ms`)
+        appendSpeed(chain?.name || "unknown", diff)
+        refetchNFTs()
+        trackEvent(`${chain?.name} tx`, undefined, undefined, diff < 1000 ? Math.round(diff / 100) * 100 : Math.round(diff / 500) * 500)
+      } else {
+        console.error("Tx failed", receipt)
+      }
+        setIsMinting(false)
+        setCurrentTime(0)
+        setStartTime(0)
     } catch (error: any) {
       setIsMinting(false)
       setCurrentTime(0)
-      reset()
+      setStartTime(0)
       console.error(error)
       trackEvent("Mint Error", "Contract")
     }
   }
 
-  useEffect(() => {
-    setTotalNFTs((yourNFTs as string[])?.reduce((sum, current) => sum + BigInt(current), 0n) || 0n)
-  }, [yourNFTs])
-
-  useEffect(() => {
-    if (status === "error"  && startTime > 0) {
-      setStartTime(0)
-      setCurrentTime(0)
-      setIsMinting(false)
-      trackEvent("Status Error 1")
-      console.error("Status Error 1")
-    }
-  }, [status, startTime])
-
-  // Transaction finished (or error)
-  useEffect(() => {
-    if ((isSuccess || isError) && startTime > 0 && isMinting) {
-      const diff = Date.now() - startTime
-      console.info(`Time taken ${diff}ms`)
-      appendSpeed(chain?.name || "unknown", diff)
-      trackEvent(`${chain?.name} tx`, undefined, undefined, diff < 1000 ? Math.round(diff / 100) * 100 : Math.round(diff / 500) * 500)
-    }
-    if (isSuccess || isError) {
-      setIsMinting(false)
-      setStartTime(0)
-      setCurrentTime(0)
-      reset()
-      if (isError) {
-        trackEvent("Status Error 2")
-        console.error("Status Error 2")
-      }
-    }
-  }, [isSuccess, isError, startTime, appendSpeed, chain?.name, isMinting, reset])
-
-  // Update current time every second when minting
+  // Update current time every 100ms when minting
   useEffect(() => {
     if (isMinting) {
       const interval = setInterval(() => {
@@ -199,7 +177,8 @@ const Home: NextPage = () => {
   // Update current chains
   useEffect(() => {
     if (chains && !isEqual(chains, currentChains)) {
-      setCurrentChains(chains)
+      const newChains = [...chains]
+      setCurrentChains(newChains)
     }
   }, [chains, currentChains])
 
@@ -262,9 +241,9 @@ const Home: NextPage = () => {
                 >
                   {currentChains.map((x) => (
                     <ToggleButton
-                      disabled={!switchNetwork || x.id === chain?.id || isLoading || !showAddress || isMinting}
+                      disabled={x.id === chain?.id || !showAddress || isMinting}
                       key={x.id}
-                      onClick={() => switchNetwork?.(x.id)}
+                      onClick={() => handleSwitchChain(x.id)}
                       value={x.id}
                       size="small"
                       sx={{paddingBottom: '5px'}}
@@ -289,11 +268,11 @@ const Home: NextPage = () => {
             <Box width="100%" mt="16px" mb="16px">
               <Divider />
             </Box>
-            <Button variant='contained' color="primary" disabled={isLoading || !writeAsync || !showAddress || isMinting || !isSupportedChain} onClick={onMint} startIcon={isMintingLoading ?  <StyledCircularProgress /> : null} sx={{textTransform: 'unset'}}>
+            <Button variant='contained' color="primary" disabled={!showAddress || isMinting || !isSupportedChain} onClick={onMint} startIcon={isMintingLoading ?  <StyledCircularProgress /> : null} sx={{textTransform: 'unset'}}>
               {isMintingLoading ? `Minting (${currentTime.toFixed(1)} sec)` : 'Mint NFT'}
             </Button>
             <Box mt="8px">
-              <TextNormal fontSize="14px">Owned: {totalNFTs.toString()} NFTs</TextNormal>
+              <TextNormal fontSize="14px">Owned: {totalNFTs?.toString() ?? 0} NFTs</TextNormal>
             </Box>
             <Box width="100%" mt="16px" mb="16px">
               <Divider />

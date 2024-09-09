@@ -1,19 +1,16 @@
 import '@/styles/globals.css'
 import type { AppProps } from 'next/app'
-import { EIP6963Connector, createWeb3Modal } from '@web3modal/wagmi/react'
-import { Chain, WagmiConfig, configureChains, createConfig } from 'wagmi'
-import { avalanche, fantom } from 'wagmi/chains'
+import { createWeb3Modal } from '@web3modal/wagmi/react'
+import { createConfig, http, WagmiProvider } from 'wagmi'
+import { avalanche, Chain, fantom } from 'wagmi/chains'
 import { ThemeProvider } from '@mui/material/styles'
 import CssBaseline from '@mui/material/CssBaseline'
 import { CacheProvider, EmotionCache } from '@emotion/react'
 import theme from '../config/theme'
 import createEmotionCache from '../config/createEmotionCache'
-import { publicProvider } from 'wagmi/providers/public'
-import { walletConnectProvider } from '@web3modal/wagmi'
-import { WalletConnectConnector } from 'wagmi/connectors/walletConnect'
-import { InjectedConnector } from 'wagmi/connectors/injected'
-import { CoinbaseWalletConnector } from 'wagmi/connectors/coinbaseWallet'
+import { coinbaseWallet, injected, walletConnect } from "wagmi/connectors"
 import ReactGA from "react-ga4"
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 // Client-side cache, shared for the whole session of the user in the browser.
 const clientSideEmotionCache = createEmotionCache()
@@ -45,7 +42,6 @@ const sonic: Chain = {
     },
   },
   name: 'Sonic',
-  network: 'sonic',
   rpcUrls: {
    default: {http: ['https://rpc.testnet.soniclabs.com/'] as const}, // To satisfy readonly
    public: {http: ['https://rpc.testnet.soniclabs.com/'] as const} // To satisfy readonly
@@ -71,32 +67,32 @@ const customFantom = {
    },
 }
 
-const { chains, publicClient } = configureChains(
-  [sonic, customFantom, avalanche],
-  [
-    walletConnectProvider({ projectId }),
-    publicProvider(),
-  ],
-  // Instead of default 4_000 (4sec)
-  { pollingInterval: 250 },
-)
-
-const wagmiConfig = createConfig({
-  autoConnect: true,
+export const wagmiConfig = createConfig({
+  chains: [sonic, customFantom, avalanche],
+  transports: {
+    [sonic.id]: http(),
+    [customFantom.id]: http(),
+    [avalanche.id]: http(),
+  },
   connectors: [
-    new WalletConnectConnector({ chains, options: { projectId, showQrModal: false, metadata } }),
-    new EIP6963Connector({ chains }),
-    new InjectedConnector({ chains, options: { shimDisconnect: true } }),
-    new CoinbaseWalletConnector({ chains, options: { appName: metadata.name } })
+    walletConnect({ projectId, metadata, showQrModal: false }),
+    injected({ shimDisconnect: true }),
+    coinbaseWallet({
+      appName: metadata.name,
+      appLogoUrl: metadata.icons[0],
+    }),
   ],
-  publicClient
+  // This must be used to not get hydration errors down the line
+  ssr: true,
+  pollingInterval: 250,
 })
 
 // 3. Create modal
 createWeb3Modal({ 
   wagmiConfig,
-  projectId,
-  chains,
+  projectId: projectId,
+  enableAnalytics: true,
+  enableOnramp: true,
   themeMode: 'dark',
   themeVariables: {
     '--w3m-color-mix': '#05228c',
@@ -105,19 +101,22 @@ createWeb3Modal({
 })
 
 ReactGA.initialize(gaID)
+const queryClient = new QueryClient()
 
 export default function App(props: MyAppProps) {
   const { Component, emotionCache = clientSideEmotionCache, pageProps } = props
 
   return (
-    <WagmiConfig config={wagmiConfig}>
-      <CacheProvider value={emotionCache}>
-        <ThemeProvider theme={theme}>
-          {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
-          <CssBaseline />
-          <Component {...pageProps} />
-        </ThemeProvider>
-      </CacheProvider>
-    </WagmiConfig>
+    <WagmiProvider config={wagmiConfig} reconnectOnMount={true}>
+      <QueryClientProvider client={queryClient}>
+        <CacheProvider value={emotionCache}>
+          <ThemeProvider theme={theme}>
+            {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
+            <CssBaseline />
+            <Component {...pageProps} />
+          </ThemeProvider>
+        </CacheProvider>
+      </QueryClientProvider>
+    </WagmiProvider>
   )
 }
