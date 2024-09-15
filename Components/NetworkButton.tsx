@@ -26,7 +26,7 @@ const NetworkButton = ({}) => {
   }, [chain, chains])
 
   return (
-    <Button size="large" className={styles.mainButton} variant='contained' color="primary" onClick={() => open({ view: 'Networks' })} disabled={!isConnected} startIcon={<img src={icons[chain?.id || 250]} alt={chain?.name ?? ""} width={28} height={28} />} style={{whiteSpace: "nowrap"}}>
+    <Button size="large" className={styles.mainButton} variant='contained' color="primary" onClick={() => open({ view: 'Networks' })} disabled={!isConnected} startIcon={chain?.id ? <img src={icons[chain?.id || 250]} alt={chain?.name ?? ""} width={28} height={28} /> : null} style={{whiteSpace: "nowrap"}}>
       {isSupportedChain ? `${chain?.name}` : 'Select Chain'}
     </Button>
   )
