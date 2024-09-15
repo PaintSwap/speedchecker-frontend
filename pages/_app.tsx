@@ -54,7 +54,7 @@ const sonic: Chain = {
   },
   nativeCurrency: {
     name: 'Sonic',
-    symbol: 'S',
+    symbol: '$S',
     decimals: 18,
   },
 }
