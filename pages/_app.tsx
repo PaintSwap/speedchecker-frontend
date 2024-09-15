@@ -26,9 +26,9 @@ const gaID = env?.NEXT_PUBLIC_GA_ID || ''
 
 // 2. Create wagmiConfig
 const metadata = {
-  name: 'Web3Modal',
-  description: 'Fantom Sonic',
-  url: 'https://web3modal.com',
+  name: 'Speed Checker',
+  description: 'Compare the finality of different EVM networks',
+  url: 'https://speedchecker.paintswap.io',
   icons: ['https://avatars.githubusercontent.com/u/37784886']
 }
 

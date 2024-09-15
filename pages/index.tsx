@@ -281,21 +281,21 @@ const Home: NextPage = () => {
     <>
       <Head>
         <title>Web3 Speed Checker</title>
-        <meta name="description" content="Test the speed of EVM chains" />
+        <meta name="description" content="Compare the finality of different EVM networks" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
 
         <meta name="keywords" content="fantom, sonic, $S, evm, fvm, testnet, transactions, speed, tps, finality, confirmations, fast, crypto, base, arbitrum, optimism, polygon, avalanche, celo, kava" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Web3 Speed Checker - Test the speed of EVM chains" />
+        <meta name="twitter:title" content="Web3 Speed Checker" />
         <meta name="twitter:image" content="https://speedchecker.paintswap.io/og.png" />
         <meta name="twitter:domain" content="speedchecker.paintswap.io" />
         <meta name="twitter:site" content="@paintoshi" />
         <meta name="twitter:creator" content="@paintoshi" />
-        <meta name="twitter:description" content="Web3 Speed Checker - Test the speed of EVM chains" />
+        <meta name="twitter:description" content="Compare the finality of different EVM networks" />
 
         <meta property="og:title" content="Web3 Speed Checker" />
-        <meta property="og:description" content="Test the speed of EVM chains" />
+        <meta property="og:description" content="Compare the finality of different EVM networks" />
         <meta property="og:image" content="https://speedchecker.paintswap.io/og.png" />
         <meta property="og:url" content="https://speedchecker.paintswap.io" />
       </Head>
