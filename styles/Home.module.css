@@ -51,6 +51,10 @@
   overflow-y: hidden;
 }
 
+.mainButton {
+  width: 200px;
+}
+
 /* Small Mobile */
 @media (max-width: 400px) {
   .main {
@@ -58,17 +62,21 @@
   }
 
   .title {
-    font-size: 8.5vw;
+    font-size: 7vw;
   }
 
   .titleSub {
-    font-size: 3.7vw;
+    font-size: 3vw;
   }
 
   .mainPanel {
     width: 100%;
     min-width: 100%;
     padding: 16px;
+  }
+
+  .mainButton {
+    width: 100%;
   }
 }
 
@@ -78,10 +86,22 @@
     padding: 2rem;
   }
 
+  .title {
+    font-size: 7vw;
+  }
+
+  .titleSub {
+    font-size: 3vw;
+  }
+
   .mainPanel {
     width: 100%;
     min-width: 100%;
     padding: 24px 16px;
+  }
+
+  .mainButton {
+    width: 100%;
   }
 }
 
@@ -89,5 +109,17 @@
 @media (min-width: 701px) and (max-width: 1120px) {
   .main {
     padding: 2rem;
+  }
+
+  .mainPanel {
+    width: 100%;
+  }
+
+  .title {
+    font-size: 5vw;
+  }
+
+  .titleSub {
+    font-size: 2vw;
   }
 }

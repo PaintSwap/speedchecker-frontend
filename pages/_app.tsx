@@ -2,7 +2,7 @@ import '@/styles/globals.css'
 import type { AppProps } from 'next/app'
 import { createWeb3Modal } from '@web3modal/wagmi/react'
 import { createConfig, http, WagmiProvider } from 'wagmi'
-import { avalanche, Chain, fantom } from 'wagmi/chains'
+import { avalanche, Chain, fantom, celo, kava, arbitrum, polygon, base, optimism } from 'wagmi/chains'
 import { ThemeProvider } from '@mui/material/styles'
 import CssBaseline from '@mui/material/CssBaseline'
 import { CacheProvider, EmotionCache } from '@emotion/react'
@@ -59,7 +59,7 @@ const sonic: Chain = {
   },
 }
 
-const customFantom = {
+const fantomCustom = {
   ...fantom,
   rpcUrls: {
     default: {http: ['https://rpcapi.fantom.network/'] as const}, // To satisfy readonly
@@ -68,11 +68,17 @@ const customFantom = {
 }
 
 export const wagmiConfig = createConfig({
-  chains: [sonic, customFantom, avalanche],
+  chains: [sonic, fantomCustom, avalanche, celo, kava, arbitrum, base, optimism, polygon],
   transports: {
     [sonic.id]: http(),
-    [customFantom.id]: http(),
+    [fantomCustom.id]: http(),
     [avalanche.id]: http(),
+    [celo.id]: http(),
+    [kava.id]: http(),
+    [arbitrum.id]: http(),
+    [base.id]: http(),
+    [optimism.id]: http(),
+    [polygon.id]: http(),
   },
   connectors: [
     walletConnect({ projectId, metadata, showQrModal: false }),
@@ -80,7 +86,7 @@ export const wagmiConfig = createConfig({
     coinbaseWallet({
       appName: metadata.name,
       appLogoUrl: metadata.icons[0],
-    }),
+    })
   ],
   // This must be used to not get hydration errors down the line
   ssr: true,
