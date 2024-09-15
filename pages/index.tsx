@@ -17,19 +17,15 @@ import useNFTBalance from "@/hooks/useNFTBalance"
 import NetworkButton from "@/Components/NetworkButton"
 import useBlockNumber from "@/hooks/useBlockNumber"
 import MintingButton from "@/Components/MintingButton"
+import SpeedDisplay, { SpeedList } from "@/Components/SpeedDisplay"
 
 const manrope = Manrope({ subsets: ["latin"] })
 
-type Speed = {
-  speed: number
-  timestamp: number
-}
-
-type SpeedList = {
-  chain: string,
-  chainId: number,
-  speed: Speed[]
-  average: number
+interface SpeedDisplayProps {
+  txSpeedsState: SpeedList[]
+  labels: { [key: number]: string }
+  confirmations: { [key: number]: number }
+  scrollToLatest: boolean
 }
 
 const nullSpeed = [
@@ -77,6 +73,7 @@ const Home: NextPage = () => {
   const [txSpeeds, setTxSpeeds] = usePersistState<SpeedList[]>(nullSpeed, 'txSpeedHistoryV2')
   const [latestMintedBlockNumber0Conf, setLatestMintedBlockNumber0Conf] = useState<number>(0)
   const [resetKey, setResetKey] = useState(0)
+  const [scrollToLatest, setScrollToLatest] = useState(false)
 
   const { address, chain } = useAccount()
   const { data: blockNumber } = useBlockNumber({refresh: latestMintedBlockNumber0Conf > 0})
@@ -105,6 +102,14 @@ const Home: NextPage = () => {
     }
   }, [txSpeeds, setTxSpeeds])
 
+  useEffect(() => {
+    if (scrollToLatest) {
+      // Reset the scroll flag after a short delay
+      const timer = setTimeout(() => setScrollToLatest(false), 100)
+      return () => clearTimeout(timer)
+    }
+  }, [scrollToLatest])
+
   // Current confirmations since last mint
   const currentConfirmations = useMemo(() => {
     if (!blockNumber || !latestMintedBlockNumber0Conf || confirmations[chain?.id ?? 250] <= 1) {
@@ -124,6 +129,7 @@ const Home: NextPage = () => {
       return x
     })
     setTxSpeeds(newSpeeds)
+    setScrollToLatest(true)
   }, [txSpeeds, setTxSpeeds])
 
   const nftContract = useMemo(() => {
@@ -345,22 +351,12 @@ const Home: NextPage = () => {
             <Box width="100%" mt="16px" mb="16px">
               <Divider />
             </Box>
-            <Box width="100%" display="flex" justifyContent="space-around" flexDirection="row" mt="8px" pb="8px" style={{overflowX: 'auto'}}>
-              {txSpeedsState.map((x) => (
-                <Box key={x.chain} display="flex" flexDirection="column" alignItems="center" marginRight="16px" marginLeft="16px">
-                  <TextNormal style={{whiteSpace: 'nowrap'}}>{labels[x.chainId]}</TextNormal>
-                  <TextNormal style={{whiteSpace: 'nowrap'}} fontSize="12px">
-                    {`Conf: ${confirmations[x.chainId] ?? "N/A"}`}
-                  </TextNormal>
-                  <TextNormal style={{whiteSpace: 'nowrap'}} fontSize="12px">
-                    {x.average > 0 ? `Avg: ${Number((x.average || 0) / 1000).toFixed(1)} s` : 'Avg: -'}
-                  </TextNormal>
-                  {x.speed.slice().reverse().map((speed) => (
-                    <TextSubtle key={speed.timestamp}>{Number((speed.speed || 0) / 1000).toFixed(1)} s</TextSubtle>
-                  ))}
-                </Box>
-              ))}
-            </Box>
+            <SpeedDisplay 
+              txSpeedsState={txSpeedsState}
+              labels={labels}
+              confirmations={confirmations}
+              scrollToLatest={scrollToLatest}
+            />
             <Box alignItems="center" mt="8px">
               <Button variant='text' size="small" onClick={() => setTxSpeeds(nullSpeed)} style={{lineHeight: 1.2}}>
                 Clear Speed History
