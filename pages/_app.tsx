@@ -43,8 +43,8 @@ const sonic: Chain = {
   },
   name: 'Sonic',
   rpcUrls: {
-   default: {http: ['https://rpc.testnet.soniclabs.com/'] as const}, // To satisfy readonly
-   public: {http: ['https://rpc.testnet.soniclabs.com/'] as const} // To satisfy readonly
+   default: {http: ['https://rpc.testnet.soniclabs.com/'] as const},
+   public: {http: ['https://rpc.testnet.soniclabs.com/'] as const}
   },
   blockExplorers: {
     default: {
@@ -54,7 +54,7 @@ const sonic: Chain = {
   },
   nativeCurrency: {
     name: 'Sonic',
-    symbol: 'S',
+    symbol: 'SSS',
     decimals: 18,
   },
 }
@@ -62,8 +62,8 @@ const sonic: Chain = {
 const fantomCustom = {
   ...fantom,
   rpcUrls: {
-    default: {http: ['https://rpcapi.fantom.network/'] as const}, // To satisfy readonly
-    public: {http: ['https://rpcapi.fantom.network/'] as const} // To satisfy readonly
+    default: {http: ['https://rpcapi.fantom.network/'] as const},
+    public: {http: ['https://rpcapi.fantom.network/'] as const}
    },
 }
 
