@@ -1,6 +1,6 @@
-# Fantom Sonic Tester
+# Web3 Speed Checker
 
-Try the speed of the new Fantom FVM
+Compare the finality of different EVM networks
 
 ### Live at https://speedchecker.paintswap.io
 

@@ -14,17 +14,21 @@ export type SpeedList = {
   average: number
 }
 
+export type chainConfigType = {
+  label: string
+  confirmations: number
+  contractAddress: `0x${string}`
+}
+
 interface SpeedDisplayProps {
   txSpeedsState: SpeedList[]
-  labels: { [key: number]: string }
-  confirmations: { [key: number]: number }
+  chainConfig: { [key: number]: chainConfigType }
   scrollToLatest: boolean
 }
 
 const SpeedDisplay: React.FC<SpeedDisplayProps> = ({ 
   txSpeedsState, 
-  labels, 
-  confirmations, 
+  chainConfig,
   scrollToLatest
 }) => {
   const scrollContainerRef = useRef<HTMLDivElement | null>(null)
@@ -81,9 +85,9 @@ const SpeedDisplay: React.FC<SpeedDisplayProps> = ({
             speedElementsRef.current[x.chainId] = el 
           }}
         >
-          <TextNormal style={{whiteSpace: 'nowrap'}}>{labels[x.chainId]}</TextNormal>
+          <TextNormal style={{whiteSpace: 'nowrap'}}>{chainConfig[x.chainId].label}</TextNormal>
           <TextNormal style={{whiteSpace: 'nowrap'}} fontSize="12px">
-            {`Conf: ${confirmations[x.chainId] ?? "N/A"}`}
+            {`Conf: ${chainConfig[x.chainId].confirmations ?? "N/A"}`}
           </TextNormal>
           <TextNormal style={{whiteSpace: 'nowrap'}} fontSize="12px">
             {x.average > 0 ? `Avg: ${Number((x.average || 0) / 1000).toFixed(1)} s` : 'Avg: -'}

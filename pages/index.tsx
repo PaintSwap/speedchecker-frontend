@@ -1,4 +1,3 @@
-/* eslint-disable import/no-default-export */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Manrope } from "next/font/google"
 import styles from "@/styles/Home.module.css"
@@ -17,16 +16,9 @@ import useNFTBalance from "@/hooks/useNFTBalance"
 import NetworkButton from "@/Components/NetworkButton"
 import useBlockNumber from "@/hooks/useBlockNumber"
 import MintingButton from "@/Components/MintingButton"
-import SpeedDisplay, { SpeedList } from "@/Components/SpeedDisplay"
+import SpeedDisplay, { chainConfigType, SpeedList } from "@/Components/SpeedDisplay"
 
 const manrope = Manrope({ subsets: ["latin"] })
-
-interface SpeedDisplayProps {
-  txSpeedsState: SpeedList[]
-  labels: { [key: number]: string }
-  confirmations: { [key: number]: number }
-  scrollToLatest: boolean
-}
 
 const nullSpeed = [
   {chain: "Sonic", chainId: 64165, speed: [], average: -1},
@@ -40,28 +32,52 @@ const nullSpeed = [
   {chain: "Polygon", chainId: 137, speed: [], average: -1}
 ]
 
-const confirmations: {[key: number]: number} = {
-  250: 1,
-  43114: 1,
-  64165: 1,
-  42220: 1,
-  2222: 1,
-  42161: 300,
-  8453: 78,
-  10: 78,
-  137: 50
-}
-
-const labels: {[key: number]: string} = {
-  250: "Fantom",
-  43114: "Avalanche",
-  64165: "Sonic (Test)",
-  42220: "Celo",
-  2222: "Kava",
-  42161: "Arbitrum One",
-  8453: "Base",
-  10: "Optimism",
-  137: "Polygon Pos"
+const chainConfig: {[key: number]: chainConfigType} = {
+  250: {
+    label: "Fantom",
+    confirmations: 1,
+    contractAddress: "0x493F7909E5CA979646Abb86A81a11701420B784F"
+  },
+  43114: {
+    label: "Avalanche",
+    confirmations: 1,
+    contractAddress: "0x493F7909E5CA979646Abb86A81a11701420B784F"
+  },
+  64165: {
+    label: "Sonic (Test)",
+    confirmations: 1,
+    contractAddress: "0x2B6639D06A6Aa36B122491d1Cd839253a2324803"
+  },
+  42220: {
+    label: "Celo",
+    confirmations: 1,
+    contractAddress: "0xE610df966B3eD42b9251CEEAa34099736C65FFC9"
+  },
+  2222: {
+    label: "Kava",
+    confirmations: 1,
+    contractAddress: "0x493F7909E5CA979646Abb86A81a11701420B784F"
+  },
+  42161: {
+    label: "Arbitrum One",
+    confirmations: 300,
+    contractAddress: "0x493F7909E5CA979646Abb86A81a11701420B784F"
+  },
+  8453: {
+    label: "Base",
+    confirmations: 78,
+    contractAddress: "0x493F7909E5CA979646Abb86A81a11701420B784F"
+  },
+  10: {
+    label: "Optimism",
+    confirmations: 78,
+    contractAddress: "0x493F7909E5CA979646Abb86A81a11701420B784F"
+  },
+  137: {
+    label: "Polygon Pos",
+    confirmations: 50,
+    contractAddress: "0x493F7909E5CA979646Abb86A81a11701420B784F"
+  }
 }
 
 const Home: NextPage = () => {
@@ -78,46 +94,27 @@ const Home: NextPage = () => {
   const { address, chain } = useAccount()
   const { data: blockNumber } = useBlockNumber({refresh: latestMintedBlockNumber0Conf > 0})
   const { open } = useWeb3Modal()
+  const { writeContractAsync } = useWriteContract()
+  const { data: totalNFTs, refetch: refetchNFTs } = useNFTBalance({ address, contractAddress: chainConfig[chain?.id ?? 250].contractAddress, abi: contractABI, chainId: chain?.id ?? 250 })
   const hasUpdatedChainInfo = useRef(false)
-
-  // To force remount of MintingButton after minting
-  const handleResetTime = useCallback(() => {
-    setResetKey(prev => prev + 1)
-  }, [])
-
-  const projectId = process.env?.NEXT_PUBLIC_WC_ID || ''
-  useEffect(() => {
-    console.info("WC", `${projectId?.slice(0, 4)}...`)
-  }, [projectId])
-
-  // If the txSpeeds has a missing chain, add it
-  useEffect(() => {
-    if (hasUpdatedChainInfo.current) {
-      return
-    }
-    const missingChain = nullSpeed.find((x) => !txSpeeds.find((y) => y.chainId === x.chainId))
-    if (missingChain) {
-      setTxSpeeds([...txSpeeds, missingChain])
-      hasUpdatedChainInfo.current = true
-    }
-  }, [txSpeeds, setTxSpeeds])
-
-  useEffect(() => {
-    if (scrollToLatest) {
-      // Reset the scroll flag after a short delay
-      const timer = setTimeout(() => setScrollToLatest(false), 100)
-      return () => clearTimeout(timer)
-    }
-  }, [scrollToLatest])
 
   // Current confirmations since last mint
   const currentConfirmations = useMemo(() => {
-    if (!blockNumber || !latestMintedBlockNumber0Conf || confirmations[chain?.id ?? 250] <= 1) {
+    if (!blockNumber || !latestMintedBlockNumber0Conf || chainConfig[chain?.id ?? 250].confirmations <= 1) {
       return 0
     }
     // If currentConfirmations exceeds confirmations, set it default chain confirmations
-    return Math.max(0, Math.min(Number(blockNumber) - latestMintedBlockNumber0Conf, confirmations[chain?.id ?? 250]))
+    return Math.max(0, Math.min(Number(blockNumber) - latestMintedBlockNumber0Conf, chainConfig[chain?.id ?? 250].confirmations))
   }, [blockNumber, latestMintedBlockNumber0Conf, chain?.id])
+
+  const isMintingLoading = useMemo(() => showAddress && isMinting, [showAddress, isMinting])
+  const projectId = process.env?.NEXT_PUBLIC_WC_ID || ''
+
+  // To force remount of MintingButton after minting
+  // Which will reset the timer
+  const handleResetTime = useCallback(() => {
+    setResetKey(prev => prev + 1)
+  }, [])
 
   // Append latest speed to matching network list
   const appendSpeed = useCallback((chainId: number, speed: number) => {
@@ -132,54 +129,17 @@ const Home: NextPage = () => {
     setScrollToLatest(true)
   }, [txSpeeds, setTxSpeeds])
 
-  const nftContract = useMemo(() => {
-    switch (chain?.id) {
-      // Fantom
-      case 250:
-        return '0x493F7909E5CA979646Abb86A81a11701420B784F'
-      // Avax
-      case 43114:
-        return '0x493F7909E5CA979646Abb86A81a11701420B784F'
-      // Sonic
-      case 64165:
-        return '0x2B6639D06A6Aa36B122491d1Cd839253a2324803'
-      // Celo
-      case 42220:
-        return '0xE610df966B3eD42b9251CEEAa34099736C65FFC9'
-      // Kava
-      case 2222:
-        return '0x493F7909E5CA979646Abb86A81a11701420B784F'
-      // Arbitrum
-      case 42161:
-        return '0x493F7909E5CA979646Abb86A81a11701420B784F'
-      // Base
-      case 8453:
-        return '0x493F7909E5CA979646Abb86A81a11701420B784F'
-      // Optimism
-      case 10:
-        return '0x493F7909E5CA979646Abb86A81a11701420B784F'
-      // Polygon
-      case 137:
-        return '0x493F7909E5CA979646Abb86A81a11701420B784F'
-    }
-  }, [chain?.id])
-
-  const { writeContractAsync } = useWriteContract()
-  const { data: totalNFTs, refetch: refetchNFTs } = useNFTBalance({ address, contractAddress: nftContract, abi: contractABI, chainId: chain?.id ?? 250 })
-
-  const isMintingLoading = useMemo(() => showAddress && isMinting, [showAddress, isMinting])
-
   const onMint = async () => {
     setIsMinting(true)
     try {
       const hash = await writeContractAsync({
-        address: nftContract as `0x${string}`,
+        address: chainConfig[chain?.id ?? 250].contractAddress as `0x${string}`,
         abi: contractABI,
         functionName: "mint",
         args: [],
       })
       console.info("START", Date.now())
-      console.info("Confirmations to wait for", confirmations[chain?.id ?? 250])
+      console.info("Confirmations to wait for", chainConfig[chain?.id ?? 250].confirmations)
       setStartTime(Date.now())
       const localStartTime = Date.now()
 
@@ -187,7 +147,7 @@ const Home: NextPage = () => {
       setLatestMintedBlockNumber0Conf(0)
 
       // If confirmations are above 1, make a simple receipt check first to save the block number
-      if (confirmations[chain?.id ?? 250] > 1) {
+      if (chainConfig[chain?.id ?? 250].confirmations > 1) {
         let initReceipt
         for (let i = 0; i <= 120; ++i) {
           try {
@@ -213,7 +173,7 @@ const Home: NextPage = () => {
           receipt = await waitForTransactionReceipt(wagmiConfig, {
             hash: hash,
             onReplaced: (replacement) => console.info("Tx replaced:", replacement),
-            confirmations: confirmations[chain?.id ?? 250],
+            confirmations: chainConfig[chain?.id ?? 250].confirmations,
           })
           break
         } catch (e) {
@@ -223,7 +183,7 @@ const Home: NextPage = () => {
             throw e
           }
         }
-        // Sleep for 1 second, for a max of 30 minutes
+        // Sleep for 1 second, for a max of 30 minutes (i <= 1800)
         await new Promise((resolve) => setTimeout(resolve, 1000))
       }
       console.info("Receipt", receipt)
@@ -234,25 +194,44 @@ const Home: NextPage = () => {
           appendSpeed(chain.id, diff)
         }
         refetchNFTs()
-        // Reset latest minted block number
-        setLatestMintedBlockNumber0Conf(0)
         trackEvent(`${chain?.name} tx`, undefined, undefined, diff < 1000 ? Math.round(diff / 100) * 100 : Math.round(diff / 500) * 500)
       } else {
         console.error("Tx failed", receipt)
-        // Reset latest minted block number
-        setLatestMintedBlockNumber0Conf(0)
       }
     } catch (error: any) {
-      // Reset latest minted block number
-      setLatestMintedBlockNumber0Conf(0)
       console.error(error)
       trackEvent("Mint Error", "Contract")
     } finally {
       setIsMinting(false)
       setStartTime(0)
-      handleResetTime() // Reset the time in MintingButton
+      handleResetTime()
+      setLatestMintedBlockNumber0Conf(0)
     }
   }
+
+  useEffect(() => {
+    console.info("WC", `${projectId?.slice(0, 4)}...`)
+  }, [projectId])
+
+  // If the txSpeeds has a missing chain, add it
+  useEffect(() => {
+    if (hasUpdatedChainInfo.current) {
+      return
+    }
+    const missingChain = nullSpeed.find((x) => !txSpeeds.find((y) => y.chainId === x.chainId))
+    if (missingChain) {
+      setTxSpeeds([...txSpeeds, missingChain])
+      hasUpdatedChainInfo.current = true
+    }
+  }, [txSpeeds, setTxSpeeds])
+
+  useEffect(() => {
+    if (scrollToLatest) {
+      // Reset the scroll flag after a short delay
+      const timer = setTimeout(() => setScrollToLatest(false), 100)
+      return () => clearTimeout(timer)
+    }
+  }, [scrollToLatest])
 
   useEffect(() => {
     if (address) {
@@ -270,12 +249,16 @@ const Home: NextPage = () => {
     }
   }, [txSpeeds])
 
-  // Change network value when chain.id changes
+  // Reset everything when the network changes
   useEffect(() => {
     if (chain?.id && chain?.id !== networkValue) {
       setNetworkValue(chain.id)
+      setIsMinting(false)
+      setStartTime(0)
+      handleResetTime()
+      setLatestMintedBlockNumber0Conf(0)
     }
-  }, [chain?.id, networkValue])
+  }, [chain?.id, networkValue, setIsMinting, setStartTime, handleResetTime, setLatestMintedBlockNumber0Conf])
 
   return (
     <>
@@ -341,10 +324,10 @@ const Home: NextPage = () => {
               isMintingLoading={isMintingLoading}
               startTime={startTime}
             />
-            {confirmations[chain?.id ?? 250] > 1 && (
+            {chainConfig[chain?.id ?? 250].confirmations > 1 && (
               <Box mt="8px">
                 <TextSubtle fontSize="14px">
-                {`Confirmations: ${currentConfirmations} / ${chain?.id ? confirmations[chain?.id] : "N/A"}`}
+                {`Confirmations: ${currentConfirmations} / ${chain?.id ? chainConfig[chain?.id].confirmations : "N/A"}`}
                 </TextSubtle>
               </Box>
             )}
@@ -353,8 +336,7 @@ const Home: NextPage = () => {
             </Box>
             <SpeedDisplay 
               txSpeedsState={txSpeedsState}
-              labels={labels}
-              confirmations={confirmations}
+              chainConfig={chainConfig}
               scrollToLatest={scrollToLatest}
             />
             <Box alignItems="center" mt="8px">
@@ -366,7 +348,7 @@ const Home: NextPage = () => {
               <Divider />
             </Box>
             <Box mb="0">
-              <a href="https://github.com/PaintSwap/fantom-sonic-frontend" target="_blank">Github Source</a>
+              <a href="https://github.com/PaintSwap/speedchecker-frontend" target="_blank">Github Source</a>
             </Box>
             {chain?.id === 64165 && (
               <Box mt="8px">
