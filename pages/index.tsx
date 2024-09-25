@@ -279,7 +279,7 @@ const Home: NextPage = () => {
 
         <meta property="og:title" content="Web3 Speed Checker - Test the speed of EVM chains" />
         <meta property="og:description" content="Compare the finality of different EVM networks" />
-        <meta property="og:image" content="https://speedchecker.paintswap.io/og.png" />
+        <meta property="og:image" content="https://speedchecker.paintswap.io/og_v2.png" />
         <meta property="og:url" content="https://speedchecker.paintswap.io" />
       </Head>
       <main className={`${styles.main} ${manrope.className}`}>
