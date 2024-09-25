@@ -271,7 +271,7 @@ const Home: NextPage = () => {
         <meta name="keywords" content="fantom, sonic, $S, evm, fvm, testnet, transactions, speed, tps, finality, confirmations, fast, crypto, base, arbitrum, optimism, polygon, avalanche, celo, kava" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Web3 Speed Checker - Test the speed of EVM chains" />
-        <meta name="twitter:image" content="https://speedchecker.paintswap.io/og.png" />
+        <meta name="twitter:image" content="https://speedchecker.paintswap.io/og_v2.png" />
         <meta name="twitter:domain" content="speedchecker.paintswap.io" />
         <meta name="twitter:site" content="@paintoshi" />
         <meta name="twitter:creator" content="@paintoshi" />
