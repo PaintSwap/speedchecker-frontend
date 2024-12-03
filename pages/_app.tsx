@@ -34,27 +34,27 @@ const metadata = {
 
 const sonic: Chain = {
   ...fantom,
-  id: 64165,
+  id: 57054,
   contracts: {
     multicall3: {
-      address: '0xE33B9cAea42ead9D2f6e88489A888CA75a8D09Aa',
+      address: '0xF0c9d803C109518363cffa0319edA897E06d0230',
       blockCreated: 16825253,
     },
   },
-  name: 'Sonic',
+  name: 'Sonic Testnet',
   rpcUrls: {
-   default: {http: ['https://rpc.testnet.soniclabs.com/'] as const},
-   public: {http: ['https://rpc.testnet.soniclabs.com/'] as const}
+   default: {http: ['https://rpc.blaze.soniclabs.com'] as const},
+   public: {http: ['https://rpc.blaze.soniclabs.com'] as const}
   },
   blockExplorers: {
     default: {
       name: 'Sonic Explorer',
-      url: 'https://testnet.soniclabs.com',
+      url: 'https://blaze.soniclabs.com/',
     },
   },
   nativeCurrency: {
     name: 'Sonic',
-    symbol: '$S',
+    symbol: 'S',
     decimals: 18,
   },
 }

@@ -27,7 +27,7 @@ interface SpeedDisplayProps {
 }
 
 const SpeedDisplay: React.FC<SpeedDisplayProps> = ({ 
-  txSpeedsState, 
+  txSpeedsState,
   chainConfig,
   scrollToLatest
 }) => {

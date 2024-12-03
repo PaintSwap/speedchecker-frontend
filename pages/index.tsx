@@ -21,7 +21,7 @@ import SpeedDisplay, { chainConfigType, SpeedList } from "@/Components/SpeedDisp
 const manrope = Manrope({ subsets: ["latin"] })
 
 const nullSpeed = [
-  {chain: "Sonic", chainId: 64165, speed: [], average: -1},
+  {chain: "Sonic", chainId: 57054, speed: [], average: -1},
   {chain: "Fantom", chainId: 250, speed: [], average: -1},
   {chain: "Avalanche", chainId: 43114, speed: [], average: -1},
   {chain: "Celo", chainId: 42220, speed: [], average: -1},
@@ -43,10 +43,10 @@ const chainConfig: {[key: number]: chainConfigType} = {
     confirmations: 1,
     contractAddress: "0x493F7909E5CA979646Abb86A81a11701420B784F"
   },
-  64165: {
-    label: "Sonic (Test)",
+  57054: {
+    label: "Sonic (Blaze)",
     confirmations: 1,
-    contractAddress: "0x2B6639D06A6Aa36B122491d1Cd839253a2324803"
+    contractAddress: "0x493F7909E5CA979646Abb86A81a11701420B784F"
   },
   42220: {
     label: "Celo",
@@ -218,9 +218,14 @@ const Home: NextPage = () => {
     if (hasUpdatedChainInfo.current) {
       return
     }
-    const missingChain = nullSpeed.find((x) => !txSpeeds.find((y) => y.chainId === x.chainId))
+    // Remove row with chainId 64165
+    const txSpeedsFixed = txSpeeds.filter((x) => x?.chainId !== 64165)
+    const missingChain = nullSpeed.find((x) => !txSpeedsFixed.find((y) => y.chainId === x.chainId))
     if (missingChain) {
-      setTxSpeeds([...txSpeeds, missingChain])
+      const newTxSpeeds = [...txSpeedsFixed, missingChain]
+      // Move chainId 57054 to the top
+      newTxSpeeds.sort((a, b) => a.chainId === 57054 ? -1 : b.chainId === 57054 ? 1 : 0)
+      setTxSpeeds(newTxSpeeds)
       hasUpdatedChainInfo.current = true
     }
   }, [txSpeeds, setTxSpeeds])
@@ -301,9 +306,9 @@ const Home: NextPage = () => {
 
             {showAddress && (
               <>
-                {chain?.id === 64165 && (
+                {chain?.id === 57054 && (
                   <Box mt="8px">
-                    <TextNormal fontSize="14px"><a href="https://testnet.soniclabs.com/account" target="_blank">
+                    <TextNormal fontSize="14px"><a href="https://blaze.soniclabs.com/account" target="_blank">
                       Get Free Sonic $S</a>
                     </TextNormal>
                   </Box>
@@ -350,9 +355,9 @@ const Home: NextPage = () => {
             <Box mb="0">
               <a href="https://github.com/PaintSwap/speedchecker-frontend" target="_blank">Github Source</a>
             </Box>
-            {chain?.id === 64165 && (
+            {chain?.id === 57054 && (
               <Box mt="8px">
-                <a href="https://testnet.soniclabs.com" target="_blank">Fantom Sonic Open Dashboard</a>
+                <a href="https://blaze.soniclabs.com/" target="_blank">Sonic Blaze Dashboard</a>
               </Box>
             )}
           </div>

@@ -7,7 +7,7 @@ import styles from "@/styles/Home.module.css"
 const icons: {[key: number]: string} = {
   250: "/images/fantom.png",
   43114: "/images/avalanche.png",
-  64165: "/images/sonic.png",
+  57054: "/images/sonic.png",
   42220: "/images/celo.png",
   2222: "/images/kava.png",
   42161: "/images/arbitrum.png",
