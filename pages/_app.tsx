@@ -103,7 +103,10 @@ createWeb3Modal({
   themeVariables: {
     '--w3m-color-mix': '#05228c',
     '--w3m-color-mix-strength': 20
-  }
+  },
+  chainImages: {
+    [57054]: '/images/sonic.png',
+  },
 })
 
 ReactGA.initialize(gaID)
