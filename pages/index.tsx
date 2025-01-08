@@ -86,7 +86,7 @@ const Home: NextPage = () => {
   const [startTime, setStartTime] = useState<number>(0)
   const [isMinting, setIsMinting] = useState(false)
   const [txSpeedsState, setTxSpeedsState] = useState<SpeedList[]>(nullSpeed)
-  const [txSpeeds, setTxSpeeds] = usePersistState<SpeedList[]>(nullSpeed, 'txSpeedHistoryV2')
+  const [txSpeeds, setTxSpeeds] = usePersistState<SpeedList[]>(nullSpeed, 'txSpeedHistoryV3')
   const [latestMintedBlockNumber0Conf, setLatestMintedBlockNumber0Conf] = useState<number>(0)
   const [resetKey, setResetKey] = useState(0)
   const [scrollToLatest, setScrollToLatest] = useState(false)
@@ -253,25 +253,6 @@ const Home: NextPage = () => {
       setTxSpeedsState(nullSpeed)
     }
   }, [txSpeeds])
-
-  // If txSpeeds contains chainId 57054, move the content of 57054 to 146 and remove 57054
-  useEffect(() => {
-    // Store the content of chainId 57054
-    const sonicChain = txSpeeds.find((x) => x.chainId === 57054)
-    if (sonicChain) {
-      // Exclude chainId 57054
-      const newTxSpeeds = txSpeeds.filter((x) => x.chainId !== 57054)
-      // Replace chainId 146 with the content of 57054
-      const newList = newTxSpeeds.map((x) => {
-        if (x.chainId === 146) {
-          x.speed = sonicChain.speed
-          x.average = sonicChain.average
-        }
-        return x
-      })
-      setTxSpeeds(newList)
-    }
-  }, [txSpeeds, setTxSpeeds])
 
   // Reset everything when the network changes
   useEffect(() => {
