@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Manrope } from "next/font/google"
 import styles from "@/styles/Home.module.css"
 import type { NextPage } from 'next'
-import { useWeb3Modal } from '@web3modal/wagmi/react'
 import { useAccount, useWriteContract } from 'wagmi'
 import { abbreviateAddressAsString, trackEvent } from '@/helpers/Utilities'
 import { Button, Divider, Box, Stack } from '@mui/material'
@@ -17,11 +16,12 @@ import NetworkButton from "@/Components/NetworkButton"
 import useBlockNumber from "@/hooks/useBlockNumber"
 import MintingButton from "@/Components/MintingButton"
 import SpeedDisplay, { chainConfigType, SpeedList } from "@/Components/SpeedDisplay"
+import { useAppKit } from "@reown/appkit/react"
 
 const manrope = Manrope({ subsets: ["latin"] })
 
 const nullSpeed = [
-  {chain: "Sonic", chainId: 57054, speed: [], average: -1},
+  {chain: "Sonic", chainId: 146, speed: [], average: -1},
   {chain: "Fantom", chainId: 250, speed: [], average: -1},
   {chain: "Avalanche", chainId: 43114, speed: [], average: -1},
   {chain: "Celo", chainId: 42220, speed: [], average: -1},
@@ -43,8 +43,8 @@ const chainConfig: {[key: number]: chainConfigType} = {
     confirmations: 1,
     contractAddress: "0x493F7909E5CA979646Abb86A81a11701420B784F"
   },
-  57054: {
-    label: "Sonic (Blaze)",
+  146: {
+    label: "Sonic",
     confirmations: 1,
     contractAddress: "0x493F7909E5CA979646Abb86A81a11701420B784F"
   },
@@ -93,7 +93,7 @@ const Home: NextPage = () => {
 
   const { address, chain } = useAccount()
   const { data: blockNumber } = useBlockNumber({refresh: latestMintedBlockNumber0Conf > 0})
-  const { open } = useWeb3Modal()
+  const { open } = useAppKit()
   const { writeContractAsync } = useWriteContract()
   const { data: totalNFTs, refetch: refetchNFTs } = useNFTBalance({ address, contractAddress: chainConfig[chain?.id ?? 250].contractAddress, abi: contractABI, chainId: chain?.id ?? 250 })
   const hasUpdatedChainInfo = useRef(false)
@@ -218,13 +218,13 @@ const Home: NextPage = () => {
     if (hasUpdatedChainInfo.current) {
       return
     }
-    // Remove row with chainId 64165
-    const txSpeedsFixed = txSpeeds.filter((x) => x?.chainId !== 64165)
+    // Remove row with chainId 57054
+    const txSpeedsFixed = txSpeeds.filter((x) => x?.chainId !== 57054)
     const missingChain = nullSpeed.find((x) => !txSpeedsFixed.find((y) => y.chainId === x.chainId))
     if (missingChain) {
       const newTxSpeeds = [...txSpeedsFixed, missingChain]
-      // Move chainId 57054 to the top
-      newTxSpeeds.sort((a, b) => a.chainId === 57054 ? -1 : b.chainId === 57054 ? 1 : 0)
+      // Move chainId 146 to the top
+      newTxSpeeds.sort((a, b) => a.chainId === 146 ? -1 : b.chainId === 146 ? 1 : 0)
       setTxSpeeds(newTxSpeeds)
       hasUpdatedChainInfo.current = true
     }
@@ -253,6 +253,25 @@ const Home: NextPage = () => {
       setTxSpeedsState(nullSpeed)
     }
   }, [txSpeeds])
+
+  // If txSpeeds contains chainId 57054, move the content of 57054 to 146 and remove 57054
+  useEffect(() => {
+    // Store the content of chainId 57054
+    const sonicChain = txSpeeds.find((x) => x.chainId === 57054)
+    if (sonicChain) {
+      // Exclude chainId 57054
+      const newTxSpeeds = txSpeeds.filter((x) => x.chainId !== 57054)
+      // Replace chainId 146 with the content of 57054
+      const newList = newTxSpeeds.map((x) => {
+        if (x.chainId === 146) {
+          x.speed = sonicChain.speed
+          x.average = sonicChain.average
+        }
+        return x
+      })
+      setTxSpeeds(newList)
+    }
+  }, [txSpeeds, setTxSpeeds])
 
   // Reset everything when the network changes
   useEffect(() => {
@@ -303,18 +322,6 @@ const Home: NextPage = () => {
               )}
               <NetworkButton />
             </Stack>
-
-            {showAddress && (
-              <>
-                {chain?.id === 57054 && (
-                  <Box mt="8px">
-                    <TextNormal fontSize="14px"><a href="https://blaze.soniclabs.com/account" target="_blank">
-                      Get Free Sonic $S</a>
-                    </TextNormal>
-                  </Box>
-                )}
-              </>
-            )}
             <Box width="100%" mt="16px" mb="16px">
               <Divider />
             </Box>
@@ -355,11 +362,6 @@ const Home: NextPage = () => {
             <Box mb="0">
               <a href="https://github.com/PaintSwap/speedchecker-frontend" target="_blank">Github Source</a>
             </Box>
-            {chain?.id === 57054 && (
-              <Box mt="8px">
-                <a href="https://blaze.soniclabs.com/" target="_blank">Sonic Blaze Dashboard</a>
-              </Box>
-            )}
           </div>
         </div>
       </main>

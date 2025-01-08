@@ -1,16 +1,17 @@
 import '@/styles/globals.css'
 import type { AppProps } from 'next/app'
-import { createWeb3Modal } from '@web3modal/wagmi/react'
-import { createConfig, http, WagmiProvider } from 'wagmi'
-import { avalanche, Chain, fantom, celo, kava, arbitrum, polygon, base, optimism } from 'wagmi/chains'
 import { ThemeProvider } from '@mui/material/styles'
 import CssBaseline from '@mui/material/CssBaseline'
 import { CacheProvider, EmotionCache } from '@emotion/react'
 import theme from '../config/theme'
 import createEmotionCache from '../config/createEmotionCache'
-import { coinbaseWallet, injected, walletConnect } from "wagmi/connectors"
 import ReactGA from "react-ga4"
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { http, WagmiProvider } from 'wagmi'
+import { sonic, avalanche, fantom, celo, kava, arbitrum, polygon, base, optimism } from 'viem/chains'
+import { createAppKit } from '@reown/appkit/react'
+import { WagmiAdapter } from '@reown/appkit-adapter-wagmi'
+import { AppKitNetwork } from '@reown/appkit/networks'
 
 // Client-side cache, shared for the whole session of the user in the browser.
 const clientSideEmotionCache = createEmotionCache()
@@ -32,33 +33,6 @@ const metadata = {
   icons: ['https://avatars.githubusercontent.com/u/37784886']
 }
 
-const sonic: Chain = {
-  ...fantom,
-  id: 57054,
-  contracts: {
-    multicall3: {
-      address: '0xF0c9d803C109518363cffa0319edA897E06d0230',
-      blockCreated: 16825253,
-    },
-  },
-  name: 'Sonic Testnet',
-  rpcUrls: {
-   default: {http: ['https://rpc.blaze.soniclabs.com'] as const},
-   public: {http: ['https://rpc.blaze.soniclabs.com'] as const}
-  },
-  blockExplorers: {
-    default: {
-      name: 'Sonic Explorer',
-      url: 'https://blaze.soniclabs.com/',
-    },
-  },
-  nativeCurrency: {
-    name: 'Sonic',
-    symbol: 'S',
-    decimals: 18,
-  },
-}
-
 const fantomCustom = {
   ...fantom,
   rpcUrls: {
@@ -67,8 +41,9 @@ const fantomCustom = {
    },
 }
 
-export const wagmiConfig = createConfig({
-  chains: [sonic, fantomCustom, avalanche, celo, kava, arbitrum, base, optimism, polygon],
+export const networks: [AppKitNetwork, ...AppKitNetwork[]] = [sonic, fantomCustom, avalanche, celo, kava, arbitrum, base, optimism, polygon]
+
+const wagmiAdapter = new WagmiAdapter({
   transports: {
     [sonic.id]: http(),
     [fantomCustom.id]: http(),
@@ -80,32 +55,35 @@ export const wagmiConfig = createConfig({
     [optimism.id]: http(),
     [polygon.id]: http(),
   },
-  connectors: [
-    walletConnect({ projectId, metadata, showQrModal: false }),
-    injected({ shimDisconnect: true }),
-    coinbaseWallet({
-      appName: metadata.name,
-      appLogoUrl: metadata.icons[0],
-    })
-  ],
-  // This must be used to not get hydration errors down the line
+  // connectors,
+  projectId,
+  networks,
   ssr: true,
   pollingInterval: 250,
 })
 
-// 3. Create modal
-createWeb3Modal({ 
-  wagmiConfig,
-  projectId: projectId,
-  enableAnalytics: true,
-  enableOnramp: true,
+export const { wagmiConfig } = wagmiAdapter
+
+createAppKit({
+  adapters: [wagmiAdapter],
+  networks,
+  metadata,
+  projectId,
+  features: {
+    analytics: true,
+    email: false,
+    socials: undefined,
+    onramp: true,
+    swaps: true,
+  },
+  defaultNetwork: sonic,
+  allowUnsupportedChain: false,
   themeMode: 'dark',
   themeVariables: {
-    '--w3m-color-mix': '#05228c',
-    '--w3m-color-mix-strength': 20
+    '--w3m-z-index': 9999,
   },
   chainImages: {
-    [57054]: '/images/sonic.png',
+    146: '/images/sonic.png',
   },
 })
 

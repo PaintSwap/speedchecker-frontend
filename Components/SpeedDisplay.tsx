@@ -26,7 +26,7 @@ interface SpeedDisplayProps {
   scrollToLatest: boolean
 }
 
-const SpeedDisplay: React.FC<SpeedDisplayProps> = ({ 
+const SpeedDisplay: React.FC<SpeedDisplayProps> = ({
   txSpeedsState,
   chainConfig,
   scrollToLatest
@@ -85,9 +85,9 @@ const SpeedDisplay: React.FC<SpeedDisplayProps> = ({
             speedElementsRef.current[x.chainId] = el 
           }}
         >
-          <TextNormal style={{whiteSpace: 'nowrap'}}>{chainConfig[x.chainId].label}</TextNormal>
+          <TextNormal style={{whiteSpace: 'nowrap'}}>{chainConfig[x.chainId]?.label ?? "N/A"}</TextNormal>
           <TextNormal style={{whiteSpace: 'nowrap'}} fontSize="12px">
-            {`Conf: ${chainConfig[x.chainId].confirmations ?? "N/A"}`}
+            {`Conf: ${chainConfig[x.chainId]?.confirmations ?? "N/A"}`}
           </TextNormal>
           <TextNormal style={{whiteSpace: 'nowrap'}} fontSize="12px">
             {x.average > 0 ? `Avg: ${Number((x.average || 0) / 1000).toFixed(1)} s` : 'Avg: -'}
